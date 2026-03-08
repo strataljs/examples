@@ -4,6 +4,7 @@ import { Pool } from 'pg'
 import type { StratalEnv } from 'stratal'
 
 import { schema } from '../../db/zenstack/schema'
+import { connectionSlicing } from '../../db/zenstack/slicing'
 
 export function createDatabaseConfig(env: StratalEnv): DatabaseModuleConfig {
   return {
@@ -12,9 +13,20 @@ export function createDatabaseConfig(env: StratalEnv): DatabaseModuleConfig {
     connections: [
       {
         name: 'main',
+        slicing: connectionSlicing.main,
         dialect: () => new PostgresDialect({
           pool: new Pool({
-            connectionString: env.DB.connectionString,
+            connectionString: env.DB_MAIN.connectionString,
+            max: 1,
+          }),
+        }),
+      },
+      {
+        name: 'analytics',
+        slicing: connectionSlicing.analytics,
+        dialect: () => new PostgresDialect({
+          pool: new Pool({
+            connectionString: env.DB_ANALYTICS.connectionString,
             max: 1,
           }),
         }),

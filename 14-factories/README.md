@@ -15,7 +15,7 @@ Test data factories with Faker.js integration, state modifiers, and `Sequence` u
 ## Running
 
 ```bash
-cd examples/14-factories
+cd 14-factories
 npm install
 npx wrangler dev
 ```

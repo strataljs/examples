@@ -16,7 +16,7 @@ Durable Objects, Workflows, and Worker Entrypoints with full dependency injectio
 ## Running
 
 ```bash
-cd examples/16-workers
+cd 16-workers
 npm install
 npx wrangler dev
 ```

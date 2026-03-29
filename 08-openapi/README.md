@@ -13,7 +13,7 @@ OpenAPI documentation with Swagger UI and richly documented routes.
 ## Running
 
 ```bash
-cd examples/08-openapi
+cd 08-openapi
 npx wrangler dev
 ```
 

@@ -13,7 +13,7 @@ A RESTful notes API with Zod validation, multiple routes, and a service layer.
 ## Running
 
 ```bash
-cd examples/02-crud-api
+cd 02-crud-api
 npx wrangler dev
 ```
 

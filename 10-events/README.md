@@ -16,7 +16,7 @@ Type-safe event system with `@Listener` and `@On` decorators for application-lev
 ## Running
 
 ```bash
-cd examples/10-events
+cd 10-events
 npm install
 npx wrangler dev
 ```

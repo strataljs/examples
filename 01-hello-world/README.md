@@ -13,7 +13,7 @@ The simplest possible Stratal application: one module, one controller, one GET e
 ## Running
 
 ```bash
-cd examples/01-hello-world
+cd 01-hello-world
 npx wrangler dev
 ```
 

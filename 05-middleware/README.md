@@ -12,7 +12,7 @@ Middleware configuration using `MiddlewareConfigurable` and `MiddlewareConsumer`
 ## Running
 
 ```bash
-cd examples/05-middleware
+cd 05-middleware
 npx wrangler dev
 ```
 

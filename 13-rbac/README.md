@@ -23,7 +23,7 @@ Role-based access control with Casbin, integrated with Auth and Database modules
 1. Start the PostgreSQL database:
 
 ```bash
-cd examples/13-rbac
+cd 13-rbac
 npm run db:up
 ```
 
@@ -50,7 +50,7 @@ npm run seed -- run rbac
 ## Running
 
 ```bash
-cd examples/13-rbac
+cd 13-rbac
 npx wrangler dev
 ```
 

@@ -12,7 +12,7 @@ Route protection using `@UseGuards` and the `CanActivate` interface.
 ## Running
 
 ```bash
-cd examples/04-guards
+cd 04-guards
 npx wrangler dev
 ```
 

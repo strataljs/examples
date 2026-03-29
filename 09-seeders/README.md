@@ -13,7 +13,7 @@ Database seeding with `stratal/seeder` and the Quarry CLI framework.
 ## Running
 
 ```bash
-cd examples/09-seeders
+cd 09-seeders
 npm install
 ```
 

@@ -20,7 +20,7 @@ ZenStack ORM with PostgreSQL via Hyperdrive and database event listeners.
 2. Start the database:
 
 ```bash
-cd examples/12-database
+cd 12-database
 npm run db:up
 ```
 
@@ -41,7 +41,7 @@ npm run db:push
 ## Running
 
 ```bash
-cd examples/12-database
+cd 12-database
 npx wrangler dev
 ```
 

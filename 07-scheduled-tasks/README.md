@@ -13,7 +13,7 @@ Cron job scheduling using the `CronJob` interface.
 ## Running
 
 ```bash
-cd examples/07-scheduled-tasks
+cd 07-scheduled-tasks
 npx wrangler dev
 ```
 

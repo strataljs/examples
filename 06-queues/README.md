@@ -14,7 +14,7 @@ Queue producer/consumer pattern using Cloudflare Queues.
 ## Running
 
 ```bash
-cd examples/06-queues
+cd 06-queues
 npx wrangler dev
 ```
 

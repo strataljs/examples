@@ -18,7 +18,7 @@ Multi-connection database setup with per-connection ZenStack schemas for indepen
 2. Start the databases:
 
 ```bash
-cd examples/15-multi-connection-database
+cd 15-multi-connection-database
 npm run db:up
 ```
 

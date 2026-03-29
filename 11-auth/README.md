@@ -17,7 +17,7 @@ Session-based authentication with Better Auth and `@stratal/framework`.
 Create a D1 database for local development:
 
 ```bash
-cd examples/11-auth
+cd 11-auth
 npx wrangler d1 create auth-example
 ```
 
@@ -30,7 +30,7 @@ npx wrangler d1 migrations apply auth-example --local
 ## Running
 
 ```bash
-cd examples/11-auth
+cd 11-auth
 npm install
 npx wrangler dev
 ```

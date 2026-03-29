@@ -7,7 +7,7 @@ A collection of focused examples demonstrating individual Stratal features. Each
 Each example is a self-contained project. Install dependencies and run from within the example directory:
 
 ```bash
-cd examples/01-hello-world
+cd 01-hello-world
 npm install
 npx wrangler dev
 ```
@@ -32,13 +32,15 @@ npx wrangler dev
 | 14 | [factories](14-factories/) | Test data factories with Faker.js, state modifiers, and `Sequence` |
 | 15 | [multi-connection-database](15-multi-connection-database/) | Multi-connection database with per-connection schemas, cross-connection events, and independent schema management |
 | 16 | [workers](16-workers/) | Durable Objects, Workflows, and Worker Entrypoints with full DI via `stratal/workers` |
+| 17 | [commands](17-commands/) | Quarry CLI commands with argument parsing, DI injection, and KV persistence |
+| 18 | [inertia](18-inertia/) | Inertia.js v3 SSR integration with React pages and Vite |
 
 ## Shared patterns
 
 Every example follows the same structure:
 
 ```
-examples/XX-name/
+XX-name/
   src/
     index.ts          # Stratal entry point
     app.module.ts     # Root module

@@ -13,7 +13,7 @@ Testing a Stratal application using `@stratal/testing` with Vitest and Cloudflar
 ## Running
 
 ```bash
-cd examples/03-testing
+cd 03-testing
 npx vitest run
 ```
 

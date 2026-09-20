@@ -10,12 +10,12 @@
     "typecheck": "wrangler types --strict-vars=false && tsc --noEmit"
   },
   "dependencies": {
-    "stratal": "^0.1.0",
+    "stratal": "^0.1.1",
     "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@stratal/framework": "^0.1.0",
-    "@stratal/testing": "^0.1.0",
+    "@stratal/framework": "^0.1.1",
+    "@stratal/testing": "^0.1.1",
     "typescript": "^7.0.2",
     "vitest": "^4.1.0",
     "wrangler": "^4.135.0"

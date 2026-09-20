@@ -9,7 +9,7 @@
     "typecheck": "wrangler types --strict-vars=false && tsc --noEmit"
   },
   "dependencies": {
-    "stratal": "^0.1.0",
+    "stratal": "^0.1.1",
     "zod": "^4.6.5"
   },
   "devDependencies": {

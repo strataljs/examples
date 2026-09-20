@@ -12,13 +12,13 @@
   },
   "dependencies": {
     "@better-auth/kysely-adapter": "^1.7.5",
-    "@stratal/framework": "^0.1.0",
+    "@stratal/framework": "^0.1.1",
     "@zenstackhq/orm": "^3.9.4",
     "@zenstackhq/schema": "^3.9.4",
     "better-auth": "^1.7.5",
     "kysely": "^0.29.6",
     "kysely-d1": "^0.4.0",
-    "stratal": "^0.1.0",
+    "stratal": "^0.1.1",
     "zod": "^4.6.5"
   },
   "devDependencies": {

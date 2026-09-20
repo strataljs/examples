@@ -7,7 +7,7 @@ Generating an OpenAPI document and browsing it in a docs UI, straight from route
 - `OpenAPIModule.forRoot()` with API `info`
 - Route schemas doubling as API documentation — no separate spec to maintain
 - `summary` and `description` on each route
-- `describe()` for field-level docs and `named()` for a reusable component
+- `describe()` for field-level docs and `named()` for reusable components
 - Versioned paths appearing in the generated document
 
 ## Run it
@@ -52,10 +52,6 @@ curl -X POST http://localhost:8787/api/v1/users \
 ```
 
 `role` is omitted above and defaults to `member`.
-
-## A note on `named()`
-
-`named()` registers a schema as a reusable component. In stratal `0.1.0` a named schema passed *directly* as a body or response is emitted as a `$ref` to itself, so this example names only `User` — which is referenced from inside the list and response wrappers — and leaves the wrappers anonymous.
 
 ## Key files
 

@@ -1,22 +1,17 @@
 import './styles/global.css'
 
-import type { Page } from '@inertiajs/core'
-import { createInertiaApp } from '@inertiajs/react'
-import { renderToString } from 'react-dom/server'
+import { createInertiaSsrApp } from '@stratal/inertia/ssr'
+import type { FunctionComponent } from 'react'
 
-const pages = import.meta.glob('./pages/**/*.tsx', { eager: true }) as Record<string, { default: React.ComponentType }>
+const pages = import.meta.glob('./pages/**/*.tsx', { eager: false }) as Record<
+  string,
+  () => Promise<FunctionComponent>
+>
 
-export async function render(page: Page) {
-  return createInertiaApp({
-    page,
-    render: renderToString,
-    resolve: (name) => {
-      const mod = pages[`./pages/${name}.tsx`]
-      if (!mod) {
-        throw new Error(`Page not found: ${name}`)
-      }
-      return mod
-    },
-    setup: ({ App, props }) => <App {...props} />,
-  })
-}
+export const { render } = createInertiaSsrApp({
+  resolve: (name: string) => {
+    const page = pages[`./pages/${name}.tsx`]?.()
+    if (!page) throw new Error(`Page not found: ${name}`)
+    return page
+  },
+})

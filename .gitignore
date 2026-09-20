@@ -13,6 +13,9 @@ build/
 .wrangler/
 worker-configuration.d.ts
 
+# Generated types
+inertia.d.ts
+
 # Secrets
 .dev.vars
 .dev.vars.*

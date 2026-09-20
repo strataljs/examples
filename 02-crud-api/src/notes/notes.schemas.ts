@@ -2,9 +2,6 @@ import { array, boolean, maxLength, minLength, object, optional, string } from '
 import type { infer as Infer } from 'zod/mini'
 import { named } from 'stratal/validation'
 
-// `named()` is reserved for schemas referenced from inside other schemas. A
-// named schema used directly as a body or response is emitted as a $ref to
-// itself in stratal 0.1.0, so the wrappers below stay anonymous and inline.
 export const noteSchema = named(
   object({
     id: string(),
@@ -16,19 +13,19 @@ export const noteSchema = named(
   'Note',
 )
 
-export const createNoteSchema = object({
+export const createNoteSchema = named(object({
   title: string().check(minLength(1), maxLength(200)),
   content: string().check(minLength(1)),
-})
+}), 'CreateNote')
 
-export const updateNoteSchema = object({
+export const updateNoteSchema = named(object({
   title: optional(string().check(minLength(1), maxLength(200))),
   content: optional(string().check(minLength(1))),
-})
+}), 'UpdateNote')
 
-export const noteListSchema = object({ data: array(noteSchema) })
-export const noteResponseSchema = object({ data: noteSchema })
-export const deleteNoteSchema = object({ success: boolean() })
+export const noteListSchema = named(object({ data: array(noteSchema) }), 'NoteList')
+export const noteResponseSchema = named(object({ data: noteSchema }), 'NoteResponse')
+export const deleteNoteSchema = named(object({ success: boolean() }), 'DeleteNote')
 
 export type CreateNoteInput = Infer<typeof createNoteSchema>
 export type UpdateNoteInput = Infer<typeof updateNoteSchema>

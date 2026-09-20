@@ -19,10 +19,10 @@ export default function Layout({ children }: { children: ReactNode }) {
           </Link>
           <nav className="flex items-center gap-1">
             <Button variant="ghost" size="sm" nativeButton={false} render={<Link href="/" />}>
-              {t('common.nav.home')}
+              {t('app.nav.home')}
             </Button>
             <Button variant="ghost" size="sm" nativeButton={false} render={<Link href="/notes" />}>
-              {t('common.nav.notes')}
+              {t('app.nav.notes')}
             </Button>
           </nav>
         </div>

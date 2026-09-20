@@ -1,9 +1,9 @@
 import type { InertiaService } from '@stratal/inertia'
 import { INERTIA_TOKENS, InertiaDelete, InertiaGet, InertiaPost, InertiaPut } from '@stratal/inertia'
 import { abort } from 'stratal/errors'
+import { inject } from 'stratal/di'
 import { Controller, Get, type RouterContext } from 'stratal/router'
-import { z } from 'stratal/validation'
-import { inject } from 'tsyringe'
+import { _default, coerce, int, minimum, object, optional, string } from 'zod/mini'
 import { NotesService } from './notes.service'
 
 @Controller('/notes')
@@ -13,9 +13,9 @@ export class NotesController {
     @inject(INERTIA_TOKENS.InertiaService) private readonly inertia: InertiaService,
   ) { }
 
-  // Demonstrates: merge props (paginated list), optional props (stats),
-  // always props (timestamp), once props (categories)
-  @InertiaGet('/', { query: z.object({ page: z.coerce.number().int().min(1).optional().default(1) }) })
+  @InertiaGet('/', {
+    query: object({ page: _default(optional(coerce.number().check(int(), minimum(1))), 1) }),
+  })
   async index(ctx: RouterContext) {
     const page = Number(ctx.query('page') ?? 1)
 
@@ -28,9 +28,7 @@ export class NotesController {
     })
   }
 
-  // Demonstrates: deferred props (comments), render options (encryptHistory),
-  // per-request share, deep merge
-  @InertiaGet('/:id', { params: z.object({ id: z.string() }) })
+  @InertiaGet('/:id', { params: object({ id: string() }) })
   async show(ctx: RouterContext) {
     const id = ctx.param('id')
     const note = await this.notes.findById(id)
@@ -48,14 +46,12 @@ export class NotesController {
     }, { encryptHistory: true })
   }
 
-  // Form page: create new note
   @InertiaGet('/create')
   async createForm(ctx: RouterContext) {
     return ctx.inertia('notes/Create')
   }
 
-  // Form page: edit existing note
-  @InertiaGet('/:id/edit', { params: z.object({ id: z.string() }) })
+  @InertiaGet('/:id/edit', { params: object({ id: string() }) })
   async editForm(ctx: RouterContext) {
     const id = ctx.param('id')
     const note = await this.notes.findById(id)
@@ -67,8 +63,7 @@ export class NotesController {
     return ctx.inertia('notes/Edit', { note })
   }
 
-  // Demonstrates: flash on success
-  @InertiaPost('/', { body: z.object({ title: z.string(), content: z.string() }) })
+  @InertiaPost('/', { body: object({ title: string(), content: string() }) })
   async create(ctx: RouterContext) {
     const { title, content } = await ctx.body<{ title: string; content: string }>()
     const note = await this.notes.create({ title, content })
@@ -76,10 +71,9 @@ export class NotesController {
     return ctx.redirect(`/notes/${note.id}`)
   }
 
-  // Demonstrates: flash on update
   @InertiaPut('/:id', {
-    params: z.object({ id: z.string() }),
-    body: z.object({ title: z.string().optional(), content: z.string().optional() }),
+    params: object({ id: string() }),
+    body: object({ title: optional(string()), content: optional(string()) }),
   })
   async update(ctx: RouterContext) {
     const id = ctx.param('id')
@@ -94,8 +88,7 @@ export class NotesController {
     return ctx.redirect(`/notes/${id}`)
   }
 
-  // Demonstrates: flash on delete
-  @InertiaDelete('/:id', { params: z.object({ id: z.string() }) })
+  @InertiaDelete('/:id', { params: object({ id: string() }) })
   async destroy(ctx: RouterContext) {
     const id = ctx.param('id')
     const deleted = await this.notes.delete(id)
@@ -109,7 +102,6 @@ export class NotesController {
     return ctx.redirect('/notes')
   }
 
-  // Demonstrates: inertiaService.location() for external redirects
   @Get('/export')
   export(_ctx: RouterContext) {
     return this.inertia.location('https://example.com/export')

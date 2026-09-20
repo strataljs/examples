@@ -1,44 +1,43 @@
-import { z } from 'stratal/validation'
+import { array, minLength, nullable, object, optional, string } from 'zod/mini'
+import type { infer as Infer } from 'zod/mini'
+import { named } from 'stratal/validation'
 
-export const recordPageViewSchema = z.object({
-  path: z.string().min(1),
-  userId: z.string().optional(),
+export const pageViewSchema = named(
+  object({
+    id: string(),
+    path: string(),
+    userId: nullable(string()),
+    createdAt: string(),
+  }),
+  'PageView',
+)
+
+export const eventSchema = named(
+  object({
+    id: string(),
+    name: string(),
+    payload: nullable(string()),
+    userId: nullable(string()),
+    createdAt: string(),
+  }),
+  'AnalyticsEvent',
+)
+
+export const recordPageViewSchema = object({
+  path: string().check(minLength(1)),
+  userId: optional(string()),
 })
 
-export const recordEventSchema = z.object({
-  name: z.string().min(1),
-  payload: z.string().optional(),
-  userId: z.string().optional(),
+export const recordEventSchema = object({
+  name: string().check(minLength(1)),
+  payload: optional(string()),
+  userId: optional(string()),
 })
 
-export const pageViewSchema = z.object({
-  id: z.string(),
-  path: z.string(),
-  userId: z.string().nullable(),
-  createdAt: z.string(),
-})
+export const pageViewListSchema = object({ data: array(pageViewSchema) })
+export const pageViewResponseSchema = object({ data: pageViewSchema })
+export const eventListSchema = object({ data: array(eventSchema) })
+export const eventResponseSchema = object({ data: eventSchema })
 
-export const eventSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  payload: z.string().nullable(),
-  userId: z.string().nullable(),
-  createdAt: z.string(),
-})
-
-export const pageViewListSchema = z.object({
-  data: z.array(pageViewSchema),
-})
-
-export const pageViewResponseSchema = z.object({
-  data: pageViewSchema,
-})
-
-export const eventListSchema = z.object({
-  data: z.array(eventSchema),
-})
-
-export const eventResponseSchema = z.object({
-  data: eventSchema,
-})
-
+export type RecordPageViewInput = Infer<typeof recordPageViewSchema>
+export type RecordEventInput = Infer<typeof recordEventSchema>

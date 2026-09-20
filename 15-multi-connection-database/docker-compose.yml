@@ -6,7 +6,7 @@ services:
       POSTGRES_USER: stratal
       POSTGRES_PASSWORD: stratal
     ports:
-      - "6432:5432"
+      - "6434:5432"
     volumes:
       - stratal-main-pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -22,7 +22,7 @@ services:
       POSTGRES_USER: stratal
       POSTGRES_PASSWORD: stratal
     ports:
-      - "7432:5432"
+      - "6435:5432"
     volumes:
       - stratal-analytics-pgdata:/var/lib/postgresql/data
     healthcheck:

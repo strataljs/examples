@@ -1,7 +1,8 @@
-import { inject } from 'tsyringe'
+import { inject, Transient } from 'stratal/di'
 import { Command } from 'stratal/quarry'
 import { TaskService } from '../services/task.service'
 
+@Transient()
 export class ShowTaskCommand extends Command {
   static command = 'task:show {id?} {format=short : Output format (short or detailed)}'
   static description = 'Show task details'

@@ -4,7 +4,7 @@ import { NotificationsController } from './notifications.controller'
 import { NotificationConsumer } from './notification.consumer'
 
 @Module({
-  imports: [QueueModule.registerQueue('notifications-queue')],
+  imports: [QueueModule.registerQueue('NOTIFICATIONS_QUEUE')],
   controllers: [NotificationsController],
   consumers: [NotificationConsumer],
 })

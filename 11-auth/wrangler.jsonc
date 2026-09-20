@@ -1,11 +1,13 @@
 {
+  "$schema": "node_modules/wrangler/config-schema.json",
   "name": "stratal-example-11-auth",
   "main": "src/index.ts",
-  "compatibility_date": "2026-02-25",
+  "compatibility_date": "2026-09-20",
   "compatibility_flags": ["nodejs_compat"],
   "vars": {
     "ENVIRONMENT": "development",
-    "BETTER_AUTH_SECRET": "my-secret-key-change-in-production"
+    "BETTER_AUTH_SECRET": "my-secret-key-change-in-production",
+    "BETTER_AUTH_URL": "http://localhost:8787"
   },
   "kv_namespaces": [
     { "binding": "CACHE", "id": "placeholder" }

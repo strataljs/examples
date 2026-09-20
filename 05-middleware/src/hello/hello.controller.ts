@@ -1,11 +1,9 @@
-import { Controller, IController, Route, RouterContext } from 'stratal/router'
-import { z } from 'stratal/validation'
+import { Controller, type IController, Route, type RouterContext } from 'stratal/router'
+import { object, string } from 'zod/mini'
 
-@Controller('/api/hello')
+@Controller('/hello', { tags: ['Hello'] })
 export class HelloController implements IController {
-  @Route({
-    response: z.object({ message: z.string() }),
-  })
+  @Route({ response: object({ message: string() }) })
   index(ctx: RouterContext) {
     return ctx.json({ message: 'Hello World' })
   }

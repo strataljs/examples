@@ -1,59 +1,77 @@
-# 14 - Factories
+# 14 · Factories
 
-Test data factories with Faker.js integration, state modifiers, and `Sequence` utilities.
+Generating realistic test data with Faker-backed factories, state modifiers, and sequences.
 
 ## What it demonstrates
 
-- `Factory<TModel, TCreateInput>` abstract class with `definition()` for default attributes
-- `state()` modifiers for building variants (`admin()`, `unverified()`, `expensive()`)
-- Method chaining: `new UserFactory().admin().unverified().count(3).makeMany()`
-- `Sequence` utility with custom transformers for sequential values (emails, SKUs)
-- `count(n)` + `makeMany()` for bulk in-memory generation
-- `this.faker` (Faker.js) integration for realistic data
-- Difference between `make()` (in-memory) vs `create()` (database — not used here since no DB)
+- `Factory<TModel, TCreateInput>` with a `definition()` of default attributes
+- `this.faker` for realistic values
+- `Sequence` for values that must be unique across generated records
+- State modifiers (`admin()`, `expensive()`, `inCategory()`) that compose
+- `count(n).makeMany()` to build in bulk without touching a database
 
-## Running
+## Run it
 
 ```bash
-cd 14-factories
 npm install
-npx wrangler dev
+npm run dev
 ```
 
-## API endpoints
-
-| Method | Path                         | Description                       |
-|--------|------------------------------|-----------------------------------|
-| GET    | /api/demo/users              | Generate fake users               |
-| GET    | /api/demo/admins             | Generate fake admin users         |
-| GET    | /api/demo/products           | Generate fake products            |
-| GET    | /api/demo/expensive-products | Generate expensive products       |
-| GET    | /api/demo/mixed              | Generate mixed data with states   |
-
-## Example requests
+## Try it
 
 ```bash
-# Generate 5 random users (default)
-curl http://localhost:8787/api/demo/users
-
-# Generate 10 random users
-curl http://localhost:8787/api/demo/users?count=10
-
-# Generate admin users
-curl http://localhost:8787/api/demo/admins
-
-# Generate products
-curl http://localhost:8787/api/demo/products
-
-# Generate expensive products
-curl http://localhost:8787/api/demo/expensive-products
-
-# Generate mixed data with chained states
-curl http://localhost:8787/api/demo/mixed
+curl "http://localhost:8787/api/v1/demo/users?count=2"
 ```
+
+```json
+{"data":[{"email":"user1@example.com","name":"Lelia Armstrong","role":"user","emailVerified":true},{"email":"user2@example.com","name":"Dr. Jalen Blick","role":"user","emailVerified":true}]}
+```
+
+A state modifier changes one facet and leaves the rest alone. The email sequence keeps counting:
+
+```bash
+curl "http://localhost:8787/api/v1/demo/admins?count=2"
+```
+
+```
+Miss Alvina Heaney | admin | user3@example.com
+Colton Adams III   | admin | user4@example.com
+```
+
+```bash
+curl "http://localhost:8787/api/v1/demo/expensive-products?count=2"
+```
+
+```
+SKU-000001 | Elegant Bronze Salad     | $1503.69
+SKU-000002 | Ergonomic Silk Computer  | $3055.25
+```
+
+States compose — `expensive().inCategory('Electronics')`:
+
+```bash
+curl http://localhost:8787/api/v1/demo/mixed
+```
+
+```
+users:    [(admin, verified), (admin, verified), (user, unverified) × 3]
+products: [(Electronics, in stock) × 2, (Sports, out of stock), (Music, out of stock)]
+```
+
+`makeMany()` builds objects in memory. To persist them, use `createMany(db)` or `createManyAndReturn(db)` with a database context — see [12 · database](../12-database/).
 
 ## Key files
 
-- [`src/factories/user.factory.ts`](src/factories/user.factory.ts) - User factory with `admin()`, `unverified()` states and email `Sequence`
-- [`src/factories/product.factory.ts`](src/factories/product.factory.ts) - Product factory with `expensive()`, `outOfStock()` states and SKU `Sequence`
-- [`src/demo/demo.controller.ts`](src/demo/demo.controller.ts) - Endpoints demonstrating factory usage patterns
+- [`src/factories/user.factory.ts`](src/factories/user.factory.ts) — sequence + states
+- [`src/factories/product.factory.ts`](src/factories/product.factory.ts) — composable states
+- [`src/demo/demo.controller.ts`](src/demo/demo.controller.ts) — endpoints exercising them
+
+## Learn more
+
+- [Stratal documentation](https://stratal.dev)
+- [Stratal on GitHub](https://github.com/strataljs/stratal)
+- [All examples](https://github.com/strataljs/examples)
+
+## Star Stratal
+
+If this example helped, please [star the Stratal repo](https://github.com/strataljs/stratal) — it is the simplest way to support the project and helps other developers find it.

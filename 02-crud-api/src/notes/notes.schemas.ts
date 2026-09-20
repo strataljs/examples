@@ -1,31 +1,32 @@
-import { z } from 'stratal/validation'
+import { array, boolean, maxLength, minLength, object, optional, string } from 'zod/mini'
+import type { infer as Infer } from 'zod/mini'
+import { named } from 'stratal/validation'
 
-export const createNoteSchema = z.object({
-  title: z.string().min(1).max(200),
-  content: z.string().min(1),
-})
+export const noteSchema = named(
+  object({
+    id: string(),
+    title: string(),
+    content: string(),
+    createdAt: string(),
+    updatedAt: string(),
+  }),
+  'Note',
+)
 
-export const updateNoteSchema = z.object({
-  title: z.string().min(1).max(200).optional(),
-  content: z.string().min(1).optional(),
-})
+export const createNoteSchema = named(object({
+  title: string().check(minLength(1), maxLength(200)),
+  content: string().check(minLength(1)),
+}), 'CreateNote')
 
-export const noteSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  content: z.string(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-})
+export const updateNoteSchema = named(object({
+  title: optional(string().check(minLength(1), maxLength(200))),
+  content: optional(string().check(minLength(1))),
+}), 'UpdateNote')
 
-export const noteListSchema = z.object({
-  data: z.array(noteSchema),
-})
+export const noteListSchema = named(object({ data: array(noteSchema) }), 'NoteList')
+export const noteResponseSchema = named(object({ data: noteSchema }), 'NoteResponse')
+export const deleteNoteSchema = named(object({ success: boolean() }), 'DeleteNote')
 
-export const noteResponseSchema = z.object({
-  data: noteSchema,
-})
-
-export type CreateNoteInput = z.infer<typeof createNoteSchema>
-export type UpdateNoteInput = z.infer<typeof updateNoteSchema>
-export type Note = z.infer<typeof noteSchema>
+export type CreateNoteInput = Infer<typeof createNoteSchema>
+export type UpdateNoteInput = Infer<typeof updateNoteSchema>
+export type Note = Infer<typeof noteSchema>

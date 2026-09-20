@@ -1,6 +1,5 @@
 import type { StratalEnv } from 'stratal'
-import { DI_TOKENS, Transient } from 'stratal/di'
-import { inject } from 'tsyringe'
+import { DI_TOKENS, Transient, inject } from 'stratal/di'
 
 export interface Note {
   id: string

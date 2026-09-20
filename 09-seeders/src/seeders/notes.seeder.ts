@@ -1,5 +1,5 @@
-import { Seeder } from 'stratal/seeder'
 import { inject, Transient } from 'stratal/di'
+import { Seeder } from 'stratal/seeder'
 import { NotesService } from '../notes/notes.service'
 
 @Transient()
@@ -16,7 +16,7 @@ export class NotesSeeder extends Seeder {
     ]
 
     for (const note of notes) {
-      this.notesService.create(note)
+      await this.notesService.create(note)
     }
   }
 }

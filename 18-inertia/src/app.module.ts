@@ -19,7 +19,7 @@ import { NotesModule } from './notes/notes.module'
       sharedData: {
         appName: 'Stratal Notes',
       },
-      i18n: { only: ['common'] },
+      i18n: { only: ['app'] },
     }),
     I18nModule.registerMessages(i18nMessages),
 

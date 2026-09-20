@@ -1,41 +1,43 @@
-import { z } from 'stratal/validation'
+import { _default, array, boolean, email, enum as enum_, maxLength, minLength, object, optional, string } from 'zod/mini'
+import type { infer as Infer } from 'zod/mini'
+import { describe, named } from 'stratal/validation'
 
-export const createUserSchema = z
-  .object({
-    name: z.string().min(1).max(100),
-    email: z.string().email(),
-    role: z.enum(['admin', 'member', 'viewer']).default('member'),
-  })
-  .openapi('CreateUser')
+const role = enum_(['admin', 'member', 'viewer'])
 
-export const updateUserSchema = z
-  .object({
-    name: z.string().min(1).max(100).optional(),
-    email: z.string().email().optional(),
-    role: z.enum(['admin', 'member', 'viewer']).optional(),
-  })
-  .openapi('UpdateUser')
+export const userSchema = named(
+  object({
+    id: string(),
+    name: string(),
+    email: email(),
+    role,
+    createdAt: string(),
+  }),
+  'User',
+  'A registered user',
+)
 
-export const userSchema = z
-  .object({
-    id: z.string(),
-    name: z.string(),
-    email: z.string().email(),
-    role: z.enum(['admin', 'member', 'viewer']),
-    createdAt: z.string(),
-  })
-  .openapi('User')
+export const createUserSchema = named(
+  object({
+    name: describe(string().check(minLength(1), maxLength(100)), 'Display name'),
+    email: describe(email(), 'Unique email address'),
+    role: _default(role, 'member'),
+  }),
+  'CreateUser',
+)
 
-export const userListSchema = z
-  .object({
-    data: z.array(userSchema),
-  })
-  .openapi('UserList')
+export const updateUserSchema = named(
+  object({
+    name: optional(string().check(minLength(1), maxLength(100))),
+    email: optional(email()),
+    role: optional(role),
+  }),
+  'UpdateUser',
+)
 
-export const userResponseSchema = z
-  .object({
-    data: userSchema,
-  })
-  .openapi('UserResponse')
+export const userListSchema = named(object({ data: array(userSchema) }), 'UserList')
+export const userResponseSchema = named(object({ data: userSchema }), 'UserResponse')
+export const deleteUserSchema = named(object({ success: boolean() }), 'DeleteUser')
 
-export type User = z.infer<typeof userSchema>
+export type User = Infer<typeof userSchema>
+export type CreateUserInput = Infer<typeof createUserSchema>
+export type UpdateUserInput = Infer<typeof updateUserSchema>

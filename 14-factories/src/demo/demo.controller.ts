@@ -1,29 +1,15 @@
 import { Controller, type IController, Route, type RouterContext } from 'stratal/router'
-import { z } from 'stratal/validation'
 
 import { ProductFactory } from '../factories/product.factory'
 import { UserFactory } from '../factories/user.factory'
-import { countQuerySchema, productsResponseSchema, usersResponseSchema } from './demo.schemas'
+import {
+  countQuerySchema,
+  mixedResponseSchema,
+  productsResponseSchema,
+  usersResponseSchema,
+} from './demo.schemas'
 
-const mixedResponseSchema = z.object({
-  data: z.object({
-    users: z.array(z.object({
-      email: z.string(),
-      name: z.string(),
-      role: z.string(),
-      emailVerified: z.boolean(),
-    })),
-    products: z.array(z.object({
-      sku: z.string(),
-      name: z.string(),
-      price: z.number(),
-      category: z.string(),
-      inStock: z.boolean(),
-    })),
-  }),
-})
-
-@Controller('/api/demo/users')
+@Controller('/demo/users')
 export class DemoUsersController implements IController {
   @Route({
     query: countQuerySchema,
@@ -37,7 +23,7 @@ export class DemoUsersController implements IController {
   }
 }
 
-@Controller('/api/demo/admins')
+@Controller('/demo/admins')
 export class DemoAdminsController implements IController {
   @Route({
     query: countQuerySchema,
@@ -51,7 +37,7 @@ export class DemoAdminsController implements IController {
   }
 }
 
-@Controller('/api/demo/products')
+@Controller('/demo/products')
 export class DemoProductsController implements IController {
   @Route({
     query: countQuerySchema,
@@ -65,7 +51,7 @@ export class DemoProductsController implements IController {
   }
 }
 
-@Controller('/api/demo/expensive-products')
+@Controller('/demo/expensive-products')
 export class DemoExpensiveProductsController implements IController {
   @Route({
     query: countQuerySchema,
@@ -79,7 +65,7 @@ export class DemoExpensiveProductsController implements IController {
   }
 }
 
-@Controller('/api/demo/mixed')
+@Controller('/demo/mixed')
 export class DemoMixedController implements IController {
   @Route({
     response: mixedResponseSchema,

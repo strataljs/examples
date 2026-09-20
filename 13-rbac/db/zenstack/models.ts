@@ -12,4 +12,3 @@ export type Session = $ModelResult<$Schema, "Session">;
 export type Account = $ModelResult<$Schema, "Account">;
 export type Verification = $ModelResult<$Schema, "Verification">;
 export type Article = $ModelResult<$Schema, "Article">;
-export type CasbinRule = $ModelResult<$Schema, "CasbinRule">;

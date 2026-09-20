@@ -1,61 +1,51 @@
-import { DI_TOKENS, inject } from 'stratal/di'
+import { InjectDB, type DatabaseService } from '@stratal/framework/database'
+import { AuthGuard } from '@stratal/framework/guards'
+import { HttpException } from 'stratal/errors'
 import { UseGuards } from 'stratal/guards'
 import { Controller, type IController, Route, type RouterContext } from 'stratal/router'
-import { z } from 'stratal/validation'
-import type { AuthContext } from '@stratal/framework/context'
-import { AuthGuard } from '@stratal/framework/guards'
+import { object, string } from 'zod/mini'
+import {
+  type CreateArticleInput,
+  articleListSchema,
+  articleResponseSchema,
+  createArticleSchema,
+  deleteArticleSchema,
+} from './articles.schemas'
 
-@Controller('/api/articles')
+const articleParams = object({ id: string() })
+
+@Controller('/articles', { tags: ['Articles'], security: ['sessionCookie'] })
 export class ArticlesController implements IController {
-  constructor(
-    @inject(DI_TOKENS.AuthContext) private readonly authContext: AuthContext,
-  ) {}
+  constructor(@InjectDB('main') private readonly db: DatabaseService<'main'>) {}
 
-  // Anyone with articles:read permission can list articles
-  @UseGuards(AuthGuard({ scopes: ['articles:read'] }))
-  @Route({
-    response: z.object({
-      data: z.array(z.object({
-        id: z.string(),
-        title: z.string(),
-        author: z.string(),
-      })),
-    }),
-    summary: 'List articles (requires articles:read)',
-  })
-  index(ctx: RouterContext) {
-    return ctx.json({
-      data: [
-        { id: '1', title: 'Getting Started with Stratal', author: 'Admin' },
-        { id: '2', title: 'RBAC Best Practices', author: 'Editor' },
-      ],
-    })
+  @UseGuards(AuthGuard({ permissions: 'articles:read' }))
+  @Route({ response: articleListSchema, summary: 'List articles (articles:read)' })
+  async index(ctx: RouterContext) {
+    return ctx.json({ data: await this.db.article.findMany({ orderBy: { createdAt: 'desc' } }) })
   }
 
-  // Only users with articles:write permission can create articles
-  @UseGuards(AuthGuard({ scopes: ['articles:write'] }))
+  @UseGuards(AuthGuard({ permissions: 'articles:create' }))
   @Route({
-    body: z.object({
-      title: z.string().min(1),
-      content: z.string().min(1),
-    }),
-    response: z.object({
-      data: z.object({
-        id: z.string(),
-        title: z.string(),
-        authorId: z.string(),
-      }),
-    }),
-    summary: 'Create an article (requires articles:write)',
+    body: createArticleSchema,
+    response: articleResponseSchema,
+    summary: 'Create an article (articles:create)',
   })
   async create(ctx: RouterContext) {
-    const body = await ctx.body<{ title: string; content: string }>()
-    return ctx.json({
-      data: {
-        id: crypto.randomUUID(),
-        title: body.title,
-        authorId: this.authContext.requireUserId(),
-      },
-    }, 201)
+    const article = await this.db.article.create({
+      data: { ...(await ctx.body<CreateArticleInput>()), authorId: ctx.user().id },
+    })
+    return ctx.json({ data: article }, 201)
+  }
+
+  @UseGuards(AuthGuard({ permissions: 'articles:delete' }))
+  @Route({ params: articleParams, response: deleteArticleSchema, summary: 'Delete an article (articles:delete)' })
+  async destroy(ctx: RouterContext) {
+    const id = ctx.param('id')
+    if (!(await this.db.article.findUnique({ where: { id } }))) {
+      throw new HttpException(404, `Article ${id} not found`)
+    }
+
+    await this.db.article.delete({ where: { id } })
+    return ctx.json({ success: true })
   }
 }

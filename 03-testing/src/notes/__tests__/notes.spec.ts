@@ -10,6 +10,9 @@ describe('NotesController', () => {
     NotesService.reset()
     module = await Test.createTestingModule({
       imports: [NotesModule],
+      // Mirrors src/index.ts — the testing module builds its own application and
+      // never runs the entry file, so omitting this would assert unversioned URLs.
+      versioning: { prefix: 'api/v', defaultVersion: '1' },
     }).compile()
   })
 
@@ -17,11 +20,11 @@ describe('NotesController', () => {
     await module.close()
   })
 
-  it('should create a note', async () => {
-    const response = await module.http
-      .post('/api/notes')
-      .withBody({ title: 'Test Note', content: 'Hello from tests' })
-      .send()
+  const createNote = (title: string, content = 'Content') =>
+    module.http.post('/api/v1/notes').withBody({ title, content }).send()
+
+  it('creates a note', async () => {
+    const response = await createNote('Test Note', 'Hello from tests')
 
     response.assertCreated()
     await response.assertJsonPath('data.title', 'Test Note')
@@ -29,45 +32,30 @@ describe('NotesController', () => {
     await response.assertJsonPathExists('data.id')
   })
 
-  it('should list all notes', async () => {
-    // Create two notes
-    await module.http
-      .post('/api/notes')
-      .withBody({ title: 'Note 1', content: 'First' })
-      .send()
-    await module.http
-      .post('/api/notes')
-      .withBody({ title: 'Note 2', content: 'Second' })
-      .send()
+  it('lists all notes', async () => {
+    await createNote('Note 1', 'First')
+    await createNote('Note 2', 'Second')
 
-    const response = await module.http.get('/api/notes').send()
+    const response = await module.http.get('/api/v1/notes').send()
 
     response.assertOk()
     await response.assertJsonPathCount('data', 2)
   })
 
-  it('should get a note by id', async () => {
-    const createResponse = await module.http
-      .post('/api/notes')
-      .withBody({ title: 'Find Me', content: 'Content' })
-      .send()
+  it('gets a note by id', async () => {
+    const created = await (await createNote('Find Me')).json<{ data: { id: string } }>()
 
-    const created = await createResponse.json<{ data: { id: string } }>()
-    const response = await module.http.get(`/api/notes/${created.data.id}`).send()
+    const response = await module.http.get(`/api/v1/notes/${created.data.id}`).send()
 
     response.assertOk()
     await response.assertJsonPath('data.title', 'Find Me')
   })
 
-  it('should update a note', async () => {
-    const createResponse = await module.http
-      .post('/api/notes')
-      .withBody({ title: 'Original', content: 'Content' })
-      .send()
+  it('updates a note', async () => {
+    const created = await (await createNote('Original')).json<{ data: { id: string } }>()
 
-    const created = await createResponse.json<{ data: { id: string } }>()
     const response = await module.http
-      .put(`/api/notes/${created.data.id}`)
+      .put(`/api/v1/notes/${created.data.id}`)
       .withBody({ title: 'Updated' })
       .send()
 
@@ -75,29 +63,28 @@ describe('NotesController', () => {
     await response.assertJsonPath('data.title', 'Updated')
   })
 
-  it('should delete a note', async () => {
-    const createResponse = await module.http
-      .post('/api/notes')
-      .withBody({ title: 'Delete Me', content: 'Content' })
-      .send()
+  it('deletes a note', async () => {
+    const created = await (await createNote('Delete Me')).json<{ data: { id: string } }>()
 
-    const created = await createResponse.json<{ data: { id: string } }>()
-    const response = await module.http.delete(`/api/notes/${created.data.id}`).send()
+    const response = await module.http.delete(`/api/v1/notes/${created.data.id}`).send()
 
     response.assertOk()
     await response.assertJsonPath('success', true)
   })
 
-  it('should return 404 for non-existent note', async () => {
-    const response = await module.http.get('/api/notes/non-existent').send()
+  it('returns 404 for a note that does not exist', async () => {
+    const response = await module.http.get('/api/v1/notes/non-existent').send()
 
     response.assertNotFound()
   })
 
-  it('should resolve NotesService from the container', () => {
-    const service = module.get(NotesService)
-    const notes = service.findAll()
-    // Service should be resolvable and return empty array initially
-    expect(notes).toEqual([])
+  it('rejects a body that fails validation', async () => {
+    const response = await module.http.post('/api/v1/notes').withBody({ title: '' }).send()
+
+    response.assertBadRequest()
+  })
+
+  it('resolves NotesService from the container', () => {
+    expect(module.get(NotesService).findAll()).toEqual([])
   })
 })

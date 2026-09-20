@@ -1,71 +1,55 @@
-import { Controller, IController, Route, RouterContext } from 'stratal/router'
 import { inject } from 'stratal/di'
-import { z } from 'stratal/validation'
+import { Controller, type IController, Route, type RouterContext } from 'stratal/router'
+import { object, string } from 'zod/mini'
+import { NoteNotFoundError } from './note-not-found.error'
 import {
+  type CreateNoteInput,
+  type UpdateNoteInput,
   createNoteSchema,
+  deleteNoteSchema,
   noteListSchema,
   noteResponseSchema,
-  UpdateNoteInput,
   updateNoteSchema,
 } from './notes.schemas'
 import { NotesService } from './notes.service'
 
-@Controller('/api/notes')
-export class NotesController implements IController {
-  constructor(@inject(NotesService) private readonly notesService: NotesService) { }
+const noteParams = object({ id: string() })
 
-  @Route({
-    response: noteListSchema,
-  })
+@Controller('/notes', { tags: ['Notes'] })
+export class NotesController implements IController {
+  constructor(@inject(NotesService) private readonly notesService: NotesService) {}
+
+  @Route({ response: noteListSchema })
   index(ctx: RouterContext) {
-    const notes = this.notesService.findAll()
-    return ctx.json({ data: notes })
+    return ctx.json({ data: this.notesService.findAll() })
   }
 
-  @Route({
-    params: z.object({ id: z.string() }),
-    response: noteResponseSchema,
-  })
+  @Route({ params: noteParams, response: noteResponseSchema })
   show(ctx: RouterContext) {
-    const note = this.notesService.findById(ctx.param('id'))
-    if (!note) {
-      return ctx.json({ error: 'Note not found' }, 404)
-    }
+    const id = ctx.param('id')
+    const note = this.notesService.findById(id)
+    if (!note) throw new NoteNotFoundError(id)
     return ctx.json({ data: note })
   }
 
-  @Route({
-    body: createNoteSchema,
-    response: noteResponseSchema,
-  })
+  @Route({ body: createNoteSchema, response: noteResponseSchema })
   async create(ctx: RouterContext) {
-    const body = await ctx.body<{ title: string; content: string }>()
-    const note = this.notesService.create(body)
+    const note = this.notesService.create(await ctx.body<CreateNoteInput>())
     return ctx.json({ data: note }, 201)
   }
 
-  @Route({
-    params: z.object({ id: z.string() }),
-    body: updateNoteSchema,
-    response: noteResponseSchema,
-  })
+  @Route({ params: noteParams, body: updateNoteSchema, response: noteResponseSchema })
   async update(ctx: RouterContext) {
-    const note = this.notesService.update(ctx.param('id'), await ctx.body<UpdateNoteInput>())
-    if (!note) {
-      return ctx.json({ error: 'Note not found' }, 404)
-    }
+    const id = ctx.param('id')
+    const note = this.notesService.update(id, await ctx.body<UpdateNoteInput>())
+    if (!note) throw new NoteNotFoundError(id)
     return ctx.json({ data: note })
   }
 
-  @Route({
-    params: z.object({ id: z.string() }),
-    response: z.object({ success: z.boolean() }),
-  })
+  @Route({ params: noteParams, response: deleteNoteSchema })
   destroy(ctx: RouterContext) {
-    const deleted = this.notesService.delete(ctx.param('id'))
-    if (!deleted) {
-      return ctx.json({ error: 'Note not found' }, 404)
-    }
+    const id = ctx.param('id')
+    if (!this.notesService.delete(id)) throw new NoteNotFoundError(id)
     return ctx.json({ success: true })
   }
 }

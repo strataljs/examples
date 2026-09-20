@@ -1,12 +1,10 @@
 import { Controller, type IController, Route, type RouterContext } from 'stratal/router'
-import { z } from 'stratal/validation'
+import { object, string } from 'zod/mini'
 
-@Controller('/api/public')
+@Controller('/public', { tags: ['Public'] })
 export class PublicController implements IController {
   @Route({
-    response: z.object({
-      message: z.string(),
-    }),
+    response: object({ message: string() }),
     summary: 'Public endpoint (no auth required)',
   })
   index(ctx: RouterContext) {

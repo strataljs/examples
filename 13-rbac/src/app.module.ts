@@ -1,23 +1,19 @@
-import type { StratalEnv } from 'stratal'
-import { DI_TOKENS } from 'stratal/di'
-import { Module } from 'stratal/module'
 import { AuthModule as CoreAuthModule } from '@stratal/framework/auth'
 import type { DatabaseService } from '@stratal/framework/database'
 import { DatabaseModule } from '@stratal/framework/database'
-import { RbacModule } from '@stratal/framework/rbac'
+import type { StratalEnv } from 'stratal'
+import { DI_TOKENS } from 'stratal/di'
+import { Module } from 'stratal/module'
 
+import { permissions } from './access/permissions'
+import { ArticlesModule } from './articles/articles.module'
 import { AuthModule } from './auth/auth.module'
 import { createAuthOptions } from './auth/auth.config'
 import { createDatabaseConfig } from './database/database.config'
 import './database/database.types'
-import { rbacConfig } from './rbac/rbac.config'
-import { ArticlesModule } from './articles/articles.module'
-import { ListenersModule } from './listeners/listeners.module'
 import { RolesModule } from './roles/roles.module'
-import { RbacSeeder } from './seeders/rbac.seeder'
 
 @Module({
-  providers: [RbacSeeder],
   imports: [
     DatabaseModule.forRootAsync({
       inject: [DI_TOKENS.CloudflareEnv],
@@ -25,11 +21,10 @@ import { RbacSeeder } from './seeders/rbac.seeder'
     }),
     CoreAuthModule.forRootAsync({
       inject: [DI_TOKENS.CloudflareEnv, DI_TOKENS.Database],
-      useFactory: (env: StratalEnv, db: DatabaseService) => createAuthOptions(env, db),
+      useFactory: (env: StratalEnv, db: DatabaseService<'main'>) => createAuthOptions(env, db),
+      accessControl: permissions,
     }),
-    RbacModule.forRoot(rbacConfig),
     AuthModule,
-    ListenersModule,
     ArticlesModule,
     RolesModule,
   ],

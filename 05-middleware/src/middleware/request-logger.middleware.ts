@@ -1,18 +1,14 @@
 import { Transient } from 'stratal/di'
-import { Middleware, RouterContext } from 'stratal/router'
+import type { Middleware, Next, RouterContext } from 'stratal/router'
 
 @Transient()
 export class RequestLoggerMiddleware implements Middleware {
-  async handle(ctx: RouterContext, next: () => Promise<void>) {
+  async handle(ctx: RouterContext, next: Next): Promise<void> {
     const start = Date.now()
-    const method = ctx.c.req.method
-    const path = ctx.c.req.path
+    const { method, path } = ctx.c.req
 
     console.log(`--> ${method} ${path}`)
-
     await next()
-
-    const duration = Date.now() - start
-    console.log(`<-- ${method} ${path} ${ctx.c.res.status} (${duration}ms)`)
+    console.log(`<-- ${method} ${path} ${ctx.c.res.status} (${Date.now() - start}ms)`)
   }
 }

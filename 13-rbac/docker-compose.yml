@@ -6,7 +6,7 @@ services:
       POSTGRES_USER: stratal
       POSTGRES_PASSWORD: stratal
     ports:
-      - "6432:5432"
+      - "6433:5432"
     volumes:
       - stratal-rbac-example-pgdata:/var/lib/postgresql/data
     healthcheck:

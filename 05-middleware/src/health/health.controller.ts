@@ -1,11 +1,9 @@
-import { Controller, IController, Route, RouterContext } from 'stratal/router'
-import { z } from 'stratal/validation'
+import { Controller, type IController, Route, type RouterContext } from 'stratal/router'
+import { object, string } from 'zod/mini'
 
-@Controller('/api/health')
+@Controller('/health', { tags: ['Health'] })
 export class HealthController implements IController {
-  @Route({
-    response: z.object({ status: z.string() }),
-  })
+  @Route({ response: object({ status: string() }) })
   index(ctx: RouterContext) {
     return ctx.json({ status: 'ok' })
   }

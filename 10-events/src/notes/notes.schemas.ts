@@ -1,31 +1,32 @@
-import { z } from 'stratal/validation'
+import { array, boolean, maxLength, minLength, object, optional, string } from 'zod/mini'
+import type { infer as Infer } from 'zod/mini'
+import { named } from 'stratal/validation'
 
-export const createNoteSchema = z.object({
-  title: z.string().min(1).max(200),
-  content: z.string().min(1),
+export const noteSchema = named(
+  object({
+    id: string(),
+    title: string(),
+    content: string(),
+    createdAt: string(),
+    updatedAt: string(),
+  }),
+  'Note',
+)
+
+export const createNoteSchema = object({
+  title: string().check(minLength(1), maxLength(200)),
+  content: string().check(minLength(1)),
 })
 
-export const updateNoteSchema = z.object({
-  title: z.string().min(1).max(200).optional(),
-  content: z.string().min(1).optional(),
+export const updateNoteSchema = object({
+  title: optional(string().check(minLength(1), maxLength(200))),
+  content: optional(string().check(minLength(1))),
 })
 
-export const noteSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  content: z.string(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-})
+export const noteListSchema = object({ data: array(noteSchema) })
+export const noteResponseSchema = object({ data: noteSchema })
+export const deleteNoteSchema = object({ success: boolean() })
 
-export const noteListSchema = z.object({
-  data: z.array(noteSchema),
-})
-
-export const noteResponseSchema = z.object({
-  data: noteSchema,
-})
-
-export type CreateNoteInput = z.infer<typeof createNoteSchema>
-export type UpdateNoteInput = z.infer<typeof updateNoteSchema>
-export type Note = z.infer<typeof noteSchema>
+export type CreateNoteInput = Infer<typeof createNoteSchema>
+export type UpdateNoteInput = Infer<typeof updateNoteSchema>
+export type Note = Infer<typeof noteSchema>

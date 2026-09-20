@@ -1,28 +1,25 @@
-import { InjectQueue, type IQueueSender } from 'stratal/queue';
-import { Controller, IController, Route, RouterContext } from 'stratal/router';
-import { z } from 'stratal/validation';
+import { InjectQueue, type IQueueSender } from 'stratal/queue'
+import { Controller, type IController, Route, type RouterContext } from 'stratal/router'
+import { boolean, email, object, string } from 'zod/mini'
+import type { NotificationPayload } from './notification.payload'
 
-@Controller('/api/notifications')
+const createNotificationSchema = object({ to: email(), subject: string(), body: string() })
+
+@Controller('/notifications', { tags: ['Notifications'] })
 export class NotificationsController implements IController {
   constructor(
-    @InjectQueue('notifications-queue') private readonly queue: IQueueSender,
-  ) { }
+    @InjectQueue('NOTIFICATIONS_QUEUE') private readonly queue: IQueueSender,
+  ) {}
 
   @Route({
-    body: z.object({
-      to: z.string().email(),
-      subject: z.string(),
-      body: z.string(),
-    }),
-    response: z.object({ queued: z.boolean() }),
+    body: createNotificationSchema,
+    response: object({ queued: boolean() }),
     summary: 'Queue a notification',
   })
   async create(ctx: RouterContext) {
-    const payload = await ctx.body<{ to: string; subject: string; body: string }>()
-
     await this.queue.dispatch({
       type: 'notification.send',
-      payload,
+      payload: await ctx.body<NotificationPayload>(),
     })
 
     return ctx.json({ queued: true }, 201)

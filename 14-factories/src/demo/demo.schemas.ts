@@ -1,28 +1,33 @@
-import { z } from 'stratal/validation'
+import { array, boolean, enum as enum_, number, object, optional, string } from 'zod/mini'
+import { describe, named } from 'stratal/validation'
 
-export const userSchema = z.object({
-  email: z.string(),
-  name: z.string(),
-  role: z.enum(['user', 'admin']),
-  emailVerified: z.boolean(),
+export const userSchema = named(
+  object({
+    email: string(),
+    name: string(),
+    role: enum_(['user', 'admin']),
+    emailVerified: boolean(),
+  }),
+  'FakeUser',
+)
+
+export const productSchema = named(
+  object({
+    sku: string(),
+    name: string(),
+    price: number(),
+    category: string(),
+    inStock: boolean(),
+  }),
+  'FakeProduct',
+)
+
+export const countQuerySchema = object({
+  count: optional(describe(string(), 'Number of items to generate')),
 })
 
-export const productSchema = z.object({
-  sku: z.string(),
-  name: z.string(),
-  price: z.number(),
-  category: z.string(),
-  inStock: z.boolean(),
-})
-
-export const countQuerySchema = z.object({
-  count: z.string().optional().openapi({ description: 'Number of items to generate' }),
-})
-
-export const usersResponseSchema = z.object({
-  data: z.array(userSchema),
-})
-
-export const productsResponseSchema = z.object({
-  data: z.array(productSchema),
+export const usersResponseSchema = object({ data: array(userSchema) })
+export const productsResponseSchema = object({ data: array(productSchema) })
+export const mixedResponseSchema = object({
+  data: object({ users: array(userSchema), products: array(productSchema) }),
 })

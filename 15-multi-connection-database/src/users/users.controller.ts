@@ -1,80 +1,62 @@
-import { Controller, type IController, Route, type RouterContext } from 'stratal/router'
-import { z } from 'stratal/validation'
 import { InjectDB, type DatabaseService } from '@stratal/framework/database'
-
+import { Controller, type IController, Route, type RouterContext } from 'stratal/router'
+import { object, string } from 'zod/mini'
+import { UserNotFoundError } from './user-not-found.error'
 import {
+  type CreateUserInput,
+  type UpdateUserInput,
   createUserSchema,
+  deleteUserSchema,
   updateUserSchema,
   userListSchema,
   userResponseSchema,
 } from './users.schemas'
 
-@Controller('/api/users')
-export class UsersController implements IController {
-  constructor(
-    @InjectDB('main') private readonly db: DatabaseService<'main'>,
-  ) {}
+const userParams = object({ id: string() })
 
-  @Route({
-    response: userListSchema,
-    summary: 'List all users',
-  })
+@Controller('/users', { tags: ['Users'] })
+export class UsersController implements IController {
+  constructor(@InjectDB('main') private readonly db: DatabaseService<'main'>) {}
+
+  @Route({ response: userListSchema, summary: 'List all users' })
   async index(ctx: RouterContext) {
-    const users = await this.db.user.findMany({
-      orderBy: { createdAt: 'desc' },
-    })
-    return ctx.json({ data: users })
+    return ctx.json({ data: await this.db.user.findMany({ orderBy: { createdAt: 'desc' } }) })
   }
 
-  @Route({
-    params: z.object({ id: z.string() }),
-    response: userResponseSchema,
-    summary: 'Get a user by ID',
-  })
+  @Route({ params: userParams, response: userResponseSchema, summary: 'Get a user by ID' })
   async show(ctx: RouterContext) {
-    const user = await this.db.user.findUnique({
-      where: { id: ctx.param('id') },
-    })
-    if (!user) return ctx.json({ error: 'User not found' }, 404)
+    const id = ctx.param('id')
+    const user = await this.db.user.findUnique({ where: { id } })
+    if (!user) throw new UserNotFoundError(id)
     return ctx.json({ data: user })
   }
 
-  @Route({
-    body: createUserSchema,
-    response: userResponseSchema,
-    summary: 'Create a new user',
-  })
+  @Route({ body: createUserSchema, response: userResponseSchema, summary: 'Create a new user' })
   async create(ctx: RouterContext) {
-    const body = await ctx.body<{ email: string; name: string }>()
-    const user = await this.db.user.create({ data: body })
+    const user = await this.db.user.create({ data: await ctx.body<CreateUserInput>() })
     return ctx.json({ data: user }, 201)
   }
 
   @Route({
-    params: z.object({ id: z.string() }),
+    params: userParams,
     body: updateUserSchema,
     response: userResponseSchema,
     summary: 'Update a user',
   })
   async update(ctx: RouterContext) {
-    const body = await ctx.body<{ email?: string; name?: string }>()
-    const user = await this.db.user.update({
-      where: { id: ctx.param('id') },
-      data: body,
-    })
+    const id = ctx.param('id')
+    if (!(await this.db.user.findUnique({ where: { id } }))) throw new UserNotFoundError(id)
+
+    const user = await this.db.user.update({ where: { id }, data: await ctx.body<UpdateUserInput>() })
     return ctx.json({ data: user })
   }
 
-  @Route({
-    params: z.object({ id: z.string() }),
-    response: z.object({ success: z.boolean() }),
-    summary: 'Delete a user',
-  })
+  @Route({ params: userParams, response: deleteUserSchema, summary: 'Delete a user' })
   async destroy(ctx: RouterContext) {
-    await this.db.user.delete({
-      where: { id: ctx.param('id') },
-    })
+    const id = ctx.param('id')
+    if (!(await this.db.user.findUnique({ where: { id } }))) throw new UserNotFoundError(id)
+
+    await this.db.user.delete({ where: { id } })
     return ctx.json({ success: true })
   }
-
 }

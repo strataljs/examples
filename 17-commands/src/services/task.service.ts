@@ -1,6 +1,5 @@
 import { CACHE_TOKENS, type CacheService } from 'stratal/cache'
-import { Transient } from 'stratal/di'
-import { inject } from 'tsyringe'
+import { inject, Transient } from 'stratal/di'
 
 export interface Task {
   id: number

@@ -1,72 +1,76 @@
-# 10 - Events
+# 10 · Events
 
-Type-safe event system with `@Listener` and `@On` decorators for application-level side effects.
+A type-safe event bus: one action, several independent listeners.
 
 ## What it demonstrates
 
-- `CustomEventRegistry` module augmentation for type-safe event names and contexts
-- `@Listener()` decorator to mark classes as event listeners (auto-discovered from module providers)
-- `@On(eventName, options?)` decorator to register methods as event handlers
-- `EventRegistry` injection and `emit()` from services
-- Multiple listeners reacting to the same events
-- `priority` option for handler execution order (higher = runs first)
-- `CustomEventContext<TData>` for typed event payloads
-- Purpose-built listeners for notifications, search indexing, and webhooks
+- `@Listener()` classes with `@On('event.name')` handlers
+- Type-safe event names and payloads by augmenting `CustomEventRegistry`
+- Emitting with `IEventRegistry.emit()` injected via `DI_TOKENS.EventRegistry`
+- `priority` to order handlers for the same event
 
-## Running
+## Run it
 
 ```bash
-cd 10-events
 npm install
-npx wrangler dev
+npm run dev
 ```
 
-## API endpoints
+## Try it
 
-| Method | Path             | Description                    |
-|--------|------------------|--------------------------------|
-| GET    | /api/notes       | List all notes                 |
-| POST   | /api/notes       | Create a note (emits events)   |
-| GET    | /api/notes/:id   | Get a note                     |
-| PUT    | /api/notes/:id   | Update a note (emits events)   |
-| DELETE | /api/notes/:id   | Delete a note (emits event)    |
-| GET    | /api/stats       | View event dispatch counters   |
-
-## Events
-
-| Event Name       | Emitted When                        | Payload                                    |
-|------------------|-------------------------------------|--------------------------------------------|
-| `note.notify`    | After create — notify collaborators | `{ noteId, title, recipientId }`           |
-| `note.index`     | After create/update — rebuild search index | `{ noteId, title, content, operation }` |
-| `note.webhook`   | After any mutation — dispatch to external integrations | `{ noteId, event, timestamp }` |
-
-## Example requests
+Creating a note emits `note.notify`, `note.index` and `note.webhook`:
 
 ```bash
-# Create a note — triggers note.notify, note.index, note.webhook
-curl -X POST http://localhost:8787/api/notes \
+curl -X POST http://localhost:8787/api/v1/notes \
   -H 'Content-Type: application/json' \
-  -d '{"title": "My Note", "content": "Hello from Stratal"}'
-
-# Update a note — triggers note.index, note.webhook
-curl -X PUT http://localhost:8787/api/notes/<id> \
-  -H 'Content-Type: application/json' \
-  -d '{"title": "Updated Title"}'
-
-# Delete a note — triggers note.webhook
-curl -X DELETE http://localhost:8787/api/notes/<id>
-
-# Check event dispatch counters
-curl http://localhost:8787/api/stats
+  -d '{"title":"Launch plan","content":"Ship the thing"}'
 ```
 
-Watch the wrangler console to see `[Notification]`, `[SearchIndex]`, and `[Stats]` log output from the listeners.
+Updating emits two events, deleting emits one:
+
+```bash
+curl -X PUT http://localhost:8787/api/v1/notes/<id> \
+  -H 'Content-Type: application/json' -d '{"title":"Launch plan v2"}'
+curl -X DELETE http://localhost:8787/api/v1/notes/<id>
+```
+
+The counts show how many times each event fired:
+
+```bash
+curl http://localhost:8787/api/v1/stats
+```
+
+```json
+{"data":{"notify":1,"index":2,"webhook":3}}
+```
+
+The `wrangler dev` output shows the listeners running, with the higher-priority handler first:
+
+```
+[Notification] Sending push notification to collaborator-1: "Launch plan" (ee9ef730…)
+[Stats] Total notifications dispatched: 1
+[SearchIndex] Queuing create for note "Launch plan" (ee9ef730…)
+[Stats] Total search index updates: 1
+```
+
+## Inspect it
+
+```bash
+npx quarry event:list
+```
 
 ## Key files
 
-- [`src/types/events.ts`](src/types/events.ts) - `CustomEventRegistry` augmentation with custom event types
-- [`src/notes/notes.service.ts`](src/notes/notes.service.ts) - Emits events via `EventRegistry`
-- [`src/listeners/notification.listener.ts`](src/listeners/notification.listener.ts) - Handles `note.notify` with priority 10
-- [`src/listeners/search-index.listener.ts`](src/listeners/search-index.listener.ts) - Handles `note.index` for search rebuilds
-- [`src/listeners/stats.listener.ts`](src/listeners/stats.listener.ts) - Tracks dispatch counts across all events
-- [`src/listeners/listeners.module.ts`](src/listeners/listeners.module.ts) - Provides listeners for auto-discovery
+- [`src/types/events.ts`](src/types/events.ts) — event names and payload types
+- [`src/notes/notes.service.ts`](src/notes/notes.service.ts) — emitting
+- [`src/listeners/`](src/listeners/) — three listeners reacting independently
+
+## Learn more
+
+- [Stratal documentation](https://stratal.dev)
+- [Stratal on GitHub](https://github.com/strataljs/stratal)
+- [All examples](https://github.com/strataljs/examples)
+
+## Star Stratal
+
+If this example helped, please [star the Stratal repo](https://github.com/strataljs/stratal) — it is the simplest way to support the project and helps other developers find it.

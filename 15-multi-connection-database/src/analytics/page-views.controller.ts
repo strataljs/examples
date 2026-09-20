@@ -7,7 +7,7 @@ import {
   recordPageViewSchema,
 } from './analytics.schemas'
 
-@Controller('/api/analytics/page-views')
+@Controller('/analytics/page-views')
 export class PageViewsController implements IController {
   constructor(
     @InjectDB('analytics') private readonly db: DatabaseService<'analytics'>,

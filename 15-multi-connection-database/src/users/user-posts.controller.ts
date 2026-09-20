@@ -1,24 +1,15 @@
-import { Controller, type IController, Route, type RouterContext } from 'stratal/router'
-import { z } from 'stratal/validation'
 import { InjectDB, type DatabaseService } from '@stratal/framework/database'
+import { Controller, type IController, Route, type RouterContext } from 'stratal/router'
+import { object, string } from 'zod/mini'
+import { type CreatePostInput, createPostSchema, postListSchema, postResponseSchema } from './users.schemas'
 
-import {
-  createPostSchema,
-  postListSchema,
-  postResponseSchema,
-} from './users.schemas'
+const userParams = object({ userId: string() })
 
-@Controller('/api/users/:userId/posts')
+@Controller('/users/:userId/posts', { tags: ['Posts'] })
 export class UserPostsController implements IController {
-  constructor(
-    @InjectDB('main') private readonly db: DatabaseService<'main'>,
-  ) {}
+  constructor(@InjectDB('main') private readonly db: DatabaseService<'main'>) {}
 
-  @Route({
-    params: z.object({ userId: z.string() }),
-    response: postListSchema,
-    summary: 'List posts for a user',
-  })
+  @Route({ params: userParams, response: postListSchema, summary: 'List posts for a user' })
   async index(ctx: RouterContext) {
     const posts = await this.db.post.findMany({
       where: { userId: ctx.param('userId') },
@@ -28,18 +19,14 @@ export class UserPostsController implements IController {
   }
 
   @Route({
-    params: z.object({ userId: z.string() }),
+    params: userParams,
     body: createPostSchema,
     response: postResponseSchema,
     summary: 'Create a post for a user',
   })
   async create(ctx: RouterContext) {
-    const body = await ctx.body<{ title: string; content?: string; published?: boolean }>()
     const post = await this.db.post.create({
-      data: {
-        ...body,
-        userId: ctx.param('userId'),
-      },
+      data: { ...(await ctx.body<CreatePostInput>()), userId: ctx.param('userId') },
     })
     return ctx.json({ data: post }, 201)
   }

@@ -1,4 +1,4 @@
-import { injectable } from 'stratal/di'
+import { Transient } from 'stratal/di'
 
 export interface Task {
   id: string
@@ -10,7 +10,7 @@ export interface Task {
 
 const tasks = new Map<string, Task>()
 
-@injectable()
+@Transient()
 export class TaskService {
   create(title: string, userId: string): Task {
     const task: Task = {

@@ -1,19 +1,18 @@
-import { Controller, IController, Route, RouterContext } from 'stratal/router'
 import { inject } from 'stratal/di'
-import { createNoteSchema, noteListSchema, noteResponseSchema } from './notes.schemas'
+import { Controller, type IController, Route, type RouterContext } from 'stratal/router'
+import { type CreateNoteInput, createNoteSchema, noteListSchema, noteResponseSchema } from './notes.schemas'
 import { NotesService } from './notes.service'
 
-@Controller('/api/notes')
+@Controller('/notes', { tags: ['Notes'] })
 export class NotesController implements IController {
-  constructor(@inject(NotesService) private readonly notesService: NotesService) { }
+  constructor(@inject(NotesService) private readonly notesService: NotesService) {}
 
   @Route({
     response: noteListSchema,
     summary: 'List all notes',
   })
-  index(ctx: RouterContext) {
-    const notes = this.notesService.findAll()
-    return ctx.json({ data: notes })
+  async index(ctx: RouterContext) {
+    return ctx.json({ data: await this.notesService.findAll() })
   }
 
   @Route({
@@ -22,8 +21,7 @@ export class NotesController implements IController {
     summary: 'Create a new note',
   })
   async create(ctx: RouterContext) {
-    const body = await ctx.body<{ title: string; content: string }>()
-    const note = this.notesService.create(body)
+    const note = await this.notesService.create(await ctx.body<CreateNoteInput>())
     return ctx.json({ data: note }, 201)
   }
 }

@@ -1,20 +1,18 @@
-import { CronJob } from 'stratal/cron';
-import { Transient } from 'stratal/di';
+import type { CronJob, ScheduledController } from 'stratal/cron'
+import { inject, Transient } from 'stratal/di'
+import { LOGGER_TOKENS, type LoggerService } from 'stratal/logger'
 
 @Transient()
 export class CleanupJob implements CronJob {
-  readonly schedule = '0 2 * * *'
+  static schedule = '0 2 * * *'
 
-  async execute() {
-    console.log('[CleanupJob] Running daily cleanup at 2:00 AM UTC')
-    // Perform cleanup tasks here (e.g., purge expired cache entries, old logs)
+  constructor(@inject(LOGGER_TOKENS.LoggerService) private readonly logger: LoggerService) {}
 
-    return Promise.resolve();
+  async execute(_controller: ScheduledController): Promise<void> {
+    this.logger.info('[CleanupJob] purging expired records')
   }
 
-  async onError(error: Error) {
-    console.error('[CleanupJob] Failed:', error.message)
-
-    return Promise.resolve();
+  async onError(error: Error): Promise<void> {
+    this.logger.error('[CleanupJob] failed', { error: error.message })
   }
 }

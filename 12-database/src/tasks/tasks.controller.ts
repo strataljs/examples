@@ -1,76 +1,63 @@
-import { Controller, type IController, Route, type RouterContext } from 'stratal/router'
-import { z } from 'stratal/validation'
 import { InjectDB, type DatabaseService } from '@stratal/framework/database'
+import { Controller, type IController, Route, type RouterContext } from 'stratal/router'
+import { object, string } from 'zod/mini'
+import { TaskNotFoundError } from './task-not-found.error'
+import {
+  type CreateTaskInput,
+  type UpdateTaskInput,
+  createTaskSchema,
+  deleteTaskSchema,
+  taskListSchema,
+  taskResponseSchema,
+  updateTaskSchema,
+} from './tasks.schemas'
 
-import { createTaskSchema, taskListSchema, taskResponseSchema, updateTaskSchema } from './tasks.schemas'
+const taskParams = object({ id: string() })
 
-@Controller('/api/tasks')
+@Controller('/tasks', { tags: ['Tasks'] })
 export class TasksController implements IController {
-  constructor(
-    @InjectDB('main') private readonly db: DatabaseService<'main'>,
-  ) {}
+  constructor(@InjectDB('main') private readonly db: DatabaseService<'main'>) {}
 
-  @Route({
-    response: taskListSchema,
-    summary: 'List all tasks',
-  })
+  @Route({ response: taskListSchema, summary: 'List all tasks' })
   async index(ctx: RouterContext) {
-    const tasks = await this.db.task.findMany({
-      orderBy: { createdAt: 'desc' },
-    })
+    const tasks = await this.db.task.findMany({ orderBy: { createdAt: 'desc' } })
     return ctx.json({ data: tasks })
   }
 
-  @Route({
-    params: z.object({ id: z.string() }),
-    response: taskResponseSchema,
-    summary: 'Get a task by ID',
-  })
+  @Route({ params: taskParams, response: taskResponseSchema, summary: 'Get a task by ID' })
   async show(ctx: RouterContext) {
-    const task = await this.db.task.findUnique({
-      where: { id: ctx.param('id') },
-    })
-    if (!task) return ctx.json({ error: 'Task not found' }, 404)
+    const id = ctx.param('id')
+    const task = await this.db.task.findUnique({ where: { id } })
+    if (!task) throw new TaskNotFoundError(id)
     return ctx.json({ data: task })
   }
 
-  @Route({
-    body: createTaskSchema,
-    response: taskResponseSchema,
-    summary: 'Create a new task',
-  })
+  @Route({ body: createTaskSchema, response: taskResponseSchema, summary: 'Create a new task' })
   async create(ctx: RouterContext) {
-    const body = await ctx.body<{ title: string; description?: string }>()
-    const task = await this.db.task.create({
-      data: body,
-    })
+    const task = await this.db.task.create({ data: await ctx.body<CreateTaskInput>() })
     return ctx.json({ data: task }, 201)
   }
 
   @Route({
-    params: z.object({ id: z.string() }),
+    params: taskParams,
     body: updateTaskSchema,
     response: taskResponseSchema,
     summary: 'Update a task',
   })
   async update(ctx: RouterContext) {
-    const body = await ctx.body<{ title?: string; description?: string; completed?: boolean }>()
-    const task = await this.db.task.update({
-      where: { id: ctx.param('id') },
-      data: body,
-    })
+    const id = ctx.param('id')
+    if (!(await this.db.task.findUnique({ where: { id } }))) throw new TaskNotFoundError(id)
+
+    const task = await this.db.task.update({ where: { id }, data: await ctx.body<UpdateTaskInput>() })
     return ctx.json({ data: task })
   }
 
-  @Route({
-    params: z.object({ id: z.string() }),
-    response: z.object({ success: z.boolean() }),
-    summary: 'Delete a task',
-  })
+  @Route({ params: taskParams, response: deleteTaskSchema, summary: 'Delete a task' })
   async destroy(ctx: RouterContext) {
-    await this.db.task.delete({
-      where: { id: ctx.param('id') },
-    })
+    const id = ctx.param('id')
+    if (!(await this.db.task.findUnique({ where: { id } }))) throw new TaskNotFoundError(id)
+
+    await this.db.task.delete({ where: { id } })
     return ctx.json({ success: true })
   }
 }

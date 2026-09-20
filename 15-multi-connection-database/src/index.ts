@@ -1,7 +1,7 @@
-import 'reflect-metadata';
+import { Stratal } from 'stratal'
+import { AppModule } from './app.module'
 
-import { Stratal } from 'stratal';
-import { AppModule } from './app.module';
-import './types/env';
-
-export default new Stratal({ module: AppModule })
+export default new Stratal({
+  module: AppModule,
+  versioning: { prefix: 'api/v', defaultVersion: '1' },
+})

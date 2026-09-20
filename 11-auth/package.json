@@ -4,19 +4,28 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
-    "wrangler:types": "wrangler types --strict-vars=false",
+    "db:migrate": "wrangler d1 migrations apply DB --local",
+    "setup": "npm run db:migrate",
     "deploy": "wrangler deploy",
+    "wrangler:types": "wrangler types --strict-vars=false",
     "typecheck": "wrangler types --strict-vars=false && tsc --noEmit"
   },
   "dependencies": {
     "@better-auth/kysely-adapter": "^1.7.5",
     "@stratal/framework": "^0.1.0",
+    "@zenstackhq/orm": "^3.9.4",
+    "@zenstackhq/schema": "^3.9.4",
+    "better-auth": "^1.7.5",
     "kysely": "^0.29.6",
     "kysely-d1": "^0.4.0",
-    "stratal": "^0.1.0"
+    "stratal": "^0.1.0",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "typescript": "^7.0.2",
     "wrangler": "^4.135.0"
+  },
+  "overrides": {
+    "@paralleldrive/cuid2": "^3.3.0"
   }
 }

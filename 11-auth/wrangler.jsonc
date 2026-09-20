@@ -6,7 +6,8 @@
   "compatibility_flags": ["nodejs_compat"],
   "vars": {
     "ENVIRONMENT": "development",
-    "BETTER_AUTH_SECRET": "my-secret-key-change-in-production"
+    "BETTER_AUTH_SECRET": "my-secret-key-change-in-production",
+    "BETTER_AUTH_URL": "http://localhost:8787"
   },
   "kv_namespaces": [
     { "binding": "CACHE", "id": "placeholder" }

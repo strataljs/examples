@@ -1,88 +1,84 @@
-# 12 - Database
+# 12 · Database
 
-ZenStack ORM with PostgreSQL via Hyperdrive and database event listeners.
+A ZenStack-backed API on Postgres, reached through a Hyperdrive binding, with database event listeners.
 
 ## What it demonstrates
 
-- `DatabaseModule.forRootAsync({ inject, useFactory })` for configuring database connections
-- `@InjectDB('main')` decorator for typed database injection
-- `DatabaseSchemaRegistry` and `DefaultDatabaseConnection` module augmentation for strict typing
-- ZenStack v3 schema definition (`db/schema.zmodel`) with PostgreSQL provider
-- Database event listeners (`after.Task.create`, `after.Task.update`, `after.Task.delete`) via `EventEmitterPlugin`
-- `PostgresDialect` with Hyperdrive binding for Cloudflare Workers
-- `zen db push` for schema management (no manual migrations)
-- `StratalEnv extends Cloudflare.Env` for auto-generated environment types
+- `DatabaseModule.forRootAsync()` with a named connection
+- `@InjectDB('main')` and the typed `DatabaseService<'main'>` client
+- Declaring the schema shape by augmenting `StratalDatabase`
+- Database lifecycle events — `@On('after.Task.create')` and friends
+- A Hyperdrive binding with a `localConnectionString` for local development
 
-## Prerequisites
+## Run it
 
-1. Install [Docker](https://www.docker.com/) (for PostgreSQL).
-
-2. Start the database:
-
-```bash
-cd 12-database
-npm run db:up
-```
-
-3. Install dependencies and generate types:
+Start Postgres, generate the ZenStack client, and push the schema:
 
 ```bash
 npm install
-npm run generate
-npm run wrangler:types
+npm run setup
 ```
 
-4. Push the schema to create tables:
+`setup` runs `db:up`, `generate` and `db:push` in order. Then:
 
 ```bash
-npm run db:push
+npm run dev
 ```
 
-## Running
+Stop the database with `npm run db:down`.
+
+## Try it
 
 ```bash
-cd 12-database
-npx wrangler dev
-```
-
-## API endpoints
-
-| Method | Path             | Description            |
-|--------|------------------|------------------------|
-| GET    | /api/tasks       | List all tasks         |
-| POST   | /api/tasks       | Create a task          |
-| GET    | /api/tasks/:id   | Get a task             |
-| PUT    | /api/tasks/:id   | Update a task          |
-| DELETE | /api/tasks/:id   | Delete a task          |
-
-## Example requests
-
-```bash
-# Create a task
-curl -X POST http://localhost:8787/api/tasks \
+curl -X POST http://localhost:8787/api/v1/tasks \
   -H 'Content-Type: application/json' \
-  -d '{"title": "Learn Stratal", "description": "Build a Workers app"}'
-
-# List all tasks
-curl http://localhost:8787/api/tasks
-
-# Mark a task as completed
-curl -X PUT http://localhost:8787/api/tasks/<id> \
-  -H 'Content-Type: application/json' \
-  -d '{"completed": true}'
-
-# Delete a task
-curl -X DELETE http://localhost:8787/api/tasks/<id>
+  -d '{"title":"Write migration","description":"Add the tasks table"}'
 ```
 
-Watch the wrangler console to see `[TaskListener]` log output from the database event listeners.
+```json
+{"data":{"id":"cmuab8owc000000iimrbb7o2u","title":"Write migration","description":"Add the tasks table","completed":false,"createdAt":"2026-09-20T21:10:23.244Z","updatedAt":"2026-09-20T21:10:23.246Z"}}
+```
+
+```bash
+curl http://localhost:8787/api/v1/tasks
+curl -X PUT http://localhost:8787/api/v1/tasks/<id> \
+  -H 'Content-Type: application/json' -d '{"completed":true}'
+curl -X DELETE http://localhost:8787/api/v1/tasks/<id>
+```
+
+A missing row returns a `404`:
+
+```bash
+curl -i http://localhost:8787/api/v1/tasks/nope
+```
+
+```
+HTTP/1.1 404 Not Found
+{"message":"Task nope not found","timestamp":"2026-09-20T21:10:23.375Z"}
+```
+
+Every write fires a database event, visible in the `wrangler dev` output:
+
+```
+[TaskListener] New task created: { … }
+[TaskListener] Task updated: { … }
+[TaskListener] Task deleted
+```
 
 ## Key files
 
-- [`docker-compose.yml`](docker-compose.yml) - PostgreSQL 16 Alpine container
-- [`db/schema.zmodel`](db/schema.zmodel) - ZenStack v3 schema defining the `Task` model (PostgreSQL)
-- [`src/database/database.types.ts`](src/database/database.types.ts) - `DatabaseSchemaRegistry` and `DefaultDatabaseConnection` augmentation
-- [`src/database/database.config.ts`](src/database/database.config.ts) - Database connection factory with PostgresDialect + Hyperdrive
-- [`src/tasks/tasks.controller.ts`](src/tasks/tasks.controller.ts) - CRUD controller using `@InjectDB('main')`
-- [`src/listeners/task.listener.ts`](src/listeners/task.listener.ts) - Database event listener for task operations
-- [`src/types/env.ts`](src/types/env.ts) - `StratalEnv extends Cloudflare.Env` augmentation
+- [`db/schema.zmodel`](db/schema.zmodel) — the ZenStack model
+- [`src/database/database.config.ts`](src/database/database.config.ts) — connection and dialect
+- [`src/database/database.types.ts`](src/database/database.types.ts) — `StratalDatabase` augmentation
+- [`src/tasks/tasks.controller.ts`](src/tasks/tasks.controller.ts) — queries through `@InjectDB`
+- [`src/listeners/task.listener.ts`](src/listeners/task.listener.ts) — database events
+
+## Learn more
+
+- [Stratal documentation](https://stratal.dev)
+- [Stratal on GitHub](https://github.com/strataljs/stratal)
+- [All examples](https://github.com/strataljs/examples)
+
+## Star Stratal
+
+If this example helped, please [star the Stratal repo](https://github.com/strataljs/stratal) — it is the simplest way to support the project and helps other developers find it.

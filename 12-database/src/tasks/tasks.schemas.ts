@@ -1,29 +1,33 @@
-import { z } from 'stratal/validation'
+import { array, boolean, maxLength, minLength, nullable, object, optional, string } from 'zod/mini'
+import type { infer as Infer } from 'zod/mini'
+import { named } from 'stratal/validation'
 
-export const createTaskSchema = z.object({
-  title: z.string().min(1).max(200),
-  description: z.string().optional(),
+export const taskSchema = named(
+  object({
+    id: string(),
+    title: string(),
+    description: nullable(string()),
+    completed: boolean(),
+    createdAt: string(),
+    updatedAt: string(),
+  }),
+  'Task',
+)
+
+export const createTaskSchema = object({
+  title: string().check(minLength(1), maxLength(200)),
+  description: optional(string()),
 })
 
-export const updateTaskSchema = z.object({
-  title: z.string().min(1).max(200).optional(),
-  description: z.string().optional(),
-  completed: z.boolean().optional(),
+export const updateTaskSchema = object({
+  title: optional(string().check(minLength(1), maxLength(200))),
+  description: optional(string()),
+  completed: optional(boolean()),
 })
 
-export const taskSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  description: z.string().nullable(),
-  completed: z.boolean(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-})
+export const taskListSchema = object({ data: array(taskSchema) })
+export const taskResponseSchema = object({ data: taskSchema })
+export const deleteTaskSchema = object({ success: boolean() })
 
-export const taskListSchema = z.object({
-  data: z.array(taskSchema),
-})
-
-export const taskResponseSchema = z.object({
-  data: taskSchema,
-})
+export type CreateTaskInput = Infer<typeof createTaskSchema>
+export type UpdateTaskInput = Infer<typeof updateTaskSchema>

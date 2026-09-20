@@ -7,7 +7,7 @@ import {
   recordEventSchema,
 } from './analytics.schemas'
 
-@Controller('/api/analytics/events')
+@Controller('/analytics/events')
 export class EventsController implements IController {
   constructor(
     @InjectDB('analytics') private readonly db: DatabaseService<'analytics'>,

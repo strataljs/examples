@@ -6,7 +6,7 @@
 /* eslint-disable */
 
 import { type SchemaType as $Schema } from "./schema";
-import type { FindManyArgs as $FindManyArgs, FindUniqueArgs as $FindUniqueArgs, FindFirstArgs as $FindFirstArgs, ExistsArgs as $ExistsArgs, CreateArgs as $CreateArgs, CreateManyArgs as $CreateManyArgs, CreateManyAndReturnArgs as $CreateManyAndReturnArgs, UpdateArgs as $UpdateArgs, UpdateManyArgs as $UpdateManyArgs, UpdateManyAndReturnArgs as $UpdateManyAndReturnArgs, UpsertArgs as $UpsertArgs, DeleteArgs as $DeleteArgs, DeleteManyArgs as $DeleteManyArgs, CountArgs as $CountArgs, AggregateArgs as $AggregateArgs, GroupByArgs as $GroupByArgs, WhereInput as $WhereInput, SelectInput as $SelectInput, IncludeInput as $IncludeInput, OmitInput as $OmitInput, QueryOptions as $QueryOptions } from "@zenstackhq/orm";
+import type { FindManyArgs as $FindManyArgs, FindUniqueArgs as $FindUniqueArgs, FindFirstArgs as $FindFirstArgs, ExistsArgs as $ExistsArgs, CreateArgs as $CreateArgs, CreateManyArgs as $CreateManyArgs, CreateManyAndReturnArgs as $CreateManyAndReturnArgs, UpdateArgs as $UpdateArgs, UpdateManyArgs as $UpdateManyArgs, UpdateManyAndReturnArgs as $UpdateManyAndReturnArgs, UpsertArgs as $UpsertArgs, DeleteArgs as $DeleteArgs, DeleteManyArgs as $DeleteManyArgs, CountArgs as $CountArgs, AggregateArgs as $AggregateArgs, GroupByArgs as $GroupByArgs, WhereInput as $WhereInput, SelectInput as $SelectInput, IncludeInput as $IncludeInput, OmitInput as $OmitInput, UncheckedCreateInput as $UncheckedCreateInput, CheckedCreateInput as $CheckedCreateInput, UncheckedUpdateInput as $UncheckedUpdateInput, CheckedUpdateInput as $CheckedUpdateInput, QueryOptions as $QueryOptions } from "@zenstackhq/orm";
 import type { SimplifiedPlainResult as $Result, SelectIncludeOmit as $SelectIncludeOmit } from "@zenstackhq/orm";
 export type TaskFindManyArgs = $FindManyArgs<$Schema, "Task">;
 export type TaskFindUniqueArgs = $FindUniqueArgs<$Schema, "Task">;
@@ -28,4 +28,8 @@ export type TaskWhereInput = $WhereInput<$Schema, "Task">;
 export type TaskSelect = $SelectInput<$Schema, "Task">;
 export type TaskInclude = $IncludeInput<$Schema, "Task">;
 export type TaskOmit = $OmitInput<$Schema, "Task">;
+export type TaskUncheckedCreateInput = $UncheckedCreateInput<$Schema, "Task">;
+export type TaskCheckedCreateInput = $CheckedCreateInput<$Schema, "Task">;
+export type TaskUncheckedUpdateInput = $UncheckedUpdateInput<$Schema, "Task">;
+export type TaskCheckedUpdateInput = $CheckedUpdateInput<$Schema, "Task">;
 export type TaskGetPayload<Args extends $SelectIncludeOmit<$Schema, "Task", true>, Options extends $QueryOptions<$Schema> = $QueryOptions<$Schema>> = $Result<$Schema, "Task", Args, Options>;

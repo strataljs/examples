@@ -1,71 +1,89 @@
-# 16 - Workers
+# 16 · Workers
 
-Durable Objects, Workflows, and Worker Entrypoints with full dependency injection using `stratal/workers`.
+Durable Objects, Workflows, and Service Binding RPC — each with full dependency injection.
 
 ## What it demonstrates
 
-- `StratalDurableObject` base class for Durable Objects with request-scoped DI
-- `StratalWorkflow` base class for multi-step Workflows with DI access in each step
-- `StratalWorkerEntrypoint` base class for RPC entrypoints with DI
-- Shared `TaskService` injected across all three worker primitives and the HTTP controller
-- Domain-based module organization with `TaskModule`
-- Durable Object storage for per-user state (task counter)
-- Workflow steps for multi-stage task processing
-- Loopback RPC via `cloudflare:workers` `exports` for same-worker entrypoint calls
+- `StratalDurableObject` for per-user counters backed by DO storage
+- `StratalWorkflow` for a multi-step, durable process
+- `StratalWorkerEntrypoint` for RPC callable from other workers
+- `this.runInScope(container => …)` to reach DI services outside the HTTP request path
+- Re-exporting the classes from `src/index.ts` so Wrangler can find them
 
-## Running
+> These runtime classes sit outside the normal fetch handler, so request-scoped services are not available directly. `runInScope()` opens a request container per call — inside a Durable Object it also registers `DI_TOKENS.DurableObjectState` and `DI_TOKENS.DurableObjectId`.
+
+The `exports` loopback used to call `TaskRpc` and `TaskCounter` from a controller needs the `enable_ctx_exports` compatibility flag, which [`wrangler.jsonc`](wrangler.jsonc) sets.
+
+## Run it
 
 ```bash
-cd 16-workers
 npm install
-npx wrangler dev
+npm run dev
 ```
 
-## API endpoints
+## Try it
 
-| Method | Path                         | Description                                      |
-|--------|------------------------------|--------------------------------------------------|
-| GET    | /api/tasks?userId=:userId    | List tasks for a user                            |
-| POST   | /api/tasks                   | Create a task and increment DO counter           |
-| GET    | /api/tasks/:id               | Get a task via RPC loopback export               |
-| POST   | /api/tasks/:id/process       | Start the task processing workflow               |
-| GET    | /api/tasks/user/:userId/count| Get per-user task count from Durable Object      |
-
-## Example requests
+Create a task — this also increments that user's Durable Object counter:
 
 ```bash
-# Create a task — increments the per-user Durable Object counter
-curl -X POST http://localhost:8787/api/tasks \
+curl -X POST http://localhost:8787/api/v1/tasks \
   -H 'Content-Type: application/json' \
-  -d '{"title": "Write docs", "userId": "user-1"}'
-
-# Get a task via RPC loopback export
-curl http://localhost:8787/api/tasks/<id>
-
-# Start the task processing workflow
-curl -X POST http://localhost:8787/api/tasks/<id>/process
-
-# Check the per-user task count from Durable Object storage
-curl http://localhost:8787/api/tasks/user/user-1/count
-
-# List tasks for a user
-curl http://localhost:8787/api/tasks?userId=user-1
+  -d '{"title":"Index the docs","userId":"user-1"}'
 ```
 
-Watch the wrangler console to see `[TaskCounter]` and `[Workflow]` log output.
+```json
+{"task":{"id":"8619125b-…","title":"Index the docs","userId":"user-1","status":"pending","createdAt":"2026-09-20T21:07:00.210Z"},"counterValue":1}
+```
 
-## Project structure
+Read the counter straight from DO storage:
+
+```bash
+curl http://localhost:8787/api/v1/tasks/user/user-1/count
+```
+
+```json
+{"count":2}
+```
+
+Look a task up through the RPC entrypoint:
+
+```bash
+curl http://localhost:8787/api/v1/tasks/<id>
+```
+
+Start the workflow:
+
+```bash
+curl -X POST http://localhost:8787/api/v1/tasks/<id>/process
+```
+
+```json
+{"instanceId":"d3a61eaf-daa4-42de-9b02-bacc3a867c69"}
+```
+
+Its three steps run in order, each in its own DI scope:
 
 ```
-src/
-├── app.module.ts              — Root module that imports TaskModule
-├── env.d.ts                   — Cloudflare env type augmentation
-├── index.ts                   — Stratal entry point with named exports for DO, Workflow, and Entrypoint
-└── task/
-    ├── task.module.ts          — Task domain module declaring controllers, providers
-    ├── task.service.ts         — Shared injectable service used across all worker primitives
-    ├── task.controller.ts      — HTTP controllers that orchestrate all three primitives
-    ├── task-counter.ts         — StratalDurableObject with per-user counter using DO storage + DI
-    ├── task-rpc.ts             — StratalWorkerEntrypoint for RPC task lookup via loopback exports
-    └── task-workflow.ts        — StratalWorkflow with validate → process → complete steps
+[Workflow] Validating task: Index the docs
+[Workflow] Processing task: Index the docs
+[Workflow] Completed task: Index the docs
 ```
+
+Reading the task again shows `"status":"completed"`.
+
+## Key files
+
+- [`src/task/task-counter.ts`](src/task/task-counter.ts) — Durable Object
+- [`src/task/task-workflow.ts`](src/task/task-workflow.ts) — Workflow
+- [`src/task/task-rpc.ts`](src/task/task-rpc.ts) — RPC entrypoint
+- [`src/index.ts`](src/index.ts) — re-exports for Wrangler
+
+## Learn more
+
+- [Stratal documentation](https://stratal.dev)
+- [Stratal on GitHub](https://github.com/strataljs/stratal)
+- [All examples](https://github.com/strataljs/examples)
+
+## Star Stratal
+
+If this example helped, please [star the Stratal repo](https://github.com/strataljs/stratal) — it is the simplest way to support the project and helps other developers find it.

@@ -1,7 +1,8 @@
-import { inject } from 'tsyringe'
+import { inject, Transient } from 'stratal/di'
 import { Command } from 'stratal/quarry'
 import { TaskService } from '../services/task.service'
 
+@Transient()
 export class CompleteTaskCommand extends Command {
   static command = 'task:complete {id : The task ID} {--f|force} {--n|note= : Add a note}'
   static description = 'Mark a task as done'

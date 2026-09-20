@@ -1,7 +1,8 @@
-import { inject } from 'tsyringe'
+import { inject, Transient } from 'stratal/di'
 import { Command } from 'stratal/quarry'
 import { TaskService } from '../services/task.service'
 
+@Transient()
 export class ResetTasksCommand extends Command {
   static command = 'task:reset {--f|force : Skip confirmation}'
   static description = 'Delete all tasks'

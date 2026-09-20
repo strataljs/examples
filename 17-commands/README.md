@@ -1,54 +1,100 @@
-# Example 17 — Commands (Quarry CLI)
+# 17 · Commands
 
-A **Task Manager CLI** built with Stratal's Quarry command system. Demonstrates CLI commands with argument parsing, DI injection, and Cloudflare KV persistence.
+Custom Quarry CLI commands with argument parsing, DI, and KV persistence.
 
-## Features Demonstrated
+## What it demonstrates
 
-| Feature | Command | Details |
-|---|---|---|
-| Required argument | `task:add` | `{title : The task title}` |
-| Optional argument | `task:show` | `{id?}` |
-| Default value | `task:show` | `{format=short}` |
-| Array/variadic | `task:tag` | `{tags*}` |
-| Boolean flag + alias | `task:complete` | `{--f\|force}` |
-| Value option + alias | `task:complete`, `task:list` | `{--n\|note=}`, `{--s\|status=}` |
-| Command aliases | `task:complete` | `static aliases = ['task:done']` |
-| Table output | `task:list` | `this.table(headers, rows)` |
-| Command calling | `task:reset` | `this.call('task:list')` |
-| DI injection | All commands | `@inject(TaskService)` |
+- `Command` subclasses with a `static command` signature and `static description`
+- Required, optional, default and variadic arguments; boolean, value and aliased options
+- Command aliases via `static aliases`
+- Input accessors (`this.string()`, `this.number()`, `this.boolean()`, `this.array()`)
+- Output helpers (`this.success()`, `this.warn()`, `this.fail()`, `this.table()`)
+- `this.call()` to run one command from another
+- Registering commands as `providers` on the Quarry entry, keeping them out of the worker bundle
 
-## Setup
+> Commands are injectable classes, so each needs an explicit scope decorator — `@Transient()` here — and dependencies are injected with `@inject()` from `stratal/di`.
+
+## Run it
 
 ```bash
 npm install
+npx quarry list
 ```
 
-## Usage
+## Try it
 
 ```bash
-# Add tasks
-npx quarry task:add "Buy groceries"
-npx quarry task:add "Write tests" --priority=high
-
-# List tasks
-npx quarry task:list
-npx quarry task:list --status=pending
-
-# Complete a task
-npx quarry task:complete 1 --force --note="All done"
-npx quarry task:done 1 -f   # alias
-
-# Tag a task
-npx quarry task:tag 2 urgent important
-
-# Show task details
-npx quarry task:show 2
-npx quarry task:show 2 detailed
-
-# Reset all tasks
-npx quarry task:reset --force
-
-# Built-in commands
-npx quarry list              # List all commands
-npx quarry help task:add     # Show usage for a command
+npx quarry task:add "Write the docs" --priority=high
+npx quarry task:add "Ship the release"
 ```
+
+```
+✔ Task #1 created: "Write the docs" [high]
+✔ Task #2 created: "Ship the release" [normal]
+```
+
+Variadic arguments:
+
+```bash
+npx quarry task:tag 1 docs urgent
+```
+
+```
+✔ Task #1 tagged with: docs, urgent
+  All tags: docs, urgent
+```
+
+Table output:
+
+```bash
+npx quarry task:list
+```
+
+```
+ID  Title             Priority  Status   Tags
+--  ----------------  --------  -------  ------------
+1   Write the docs    high      pending  docs, urgent
+2   Ship the release  normal    pending  -
+```
+
+An alias, an optional argument with a default, and a filter:
+
+```bash
+npx quarry task:done 2
+npx quarry task:show 1 detailed
+npx quarry task:list --status=done
+```
+
+```
+Task #1
+  Title:    Write the docs
+  Priority: high
+  Status:   pending
+  Tags:     docs, urgent
+  Created:  2026-09-20T21:05:16.566Z
+```
+
+Failure paths set a non-zero exit code:
+
+```bash
+npx quarry task:show 99      # ✖ Task #99 not found.
+npx quarry task:reset        # ⚠ This will delete all tasks. Use --force to confirm.
+```
+
+Tasks persist in the `CACHE` KV namespace under `.wrangler/`. Delete that directory to start over.
+
+## Key files
+
+- [`src/quarry.ts`](src/quarry.ts) — CLI entry registering every command
+- [`src/commands/`](src/commands/) — one file per command
+- [`src/services/task.service.ts`](src/services/task.service.ts) — KV-backed storage
+
+## Learn more
+
+- [Stratal documentation](https://stratal.dev)
+- [Stratal on GitHub](https://github.com/strataljs/stratal)
+- [All examples](https://github.com/strataljs/examples)
+
+## Star Stratal
+
+If this example helped, please [star the Stratal repo](https://github.com/strataljs/stratal) — it is the simplest way to support the project and helps other developers find it.

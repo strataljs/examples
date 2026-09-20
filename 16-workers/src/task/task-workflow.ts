@@ -1,7 +1,7 @@
 import type { WorkflowEvent, WorkflowStep } from 'cloudflare:workers';
 import { StratalWorkflow } from 'stratal/workers';
 
-import { LOGGER_TOKENS, LoggerService } from 'stratal/logger';
+import { LOGGER_TOKENS, type LoggerService } from 'stratal/logger';
 import { TaskService } from './task.service';
 
 export interface TaskWorkflowParams {

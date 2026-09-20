@@ -1,118 +1,92 @@
 import { exports } from 'cloudflare:workers'
 import type { StratalEnv } from 'stratal'
 import { DI_TOKENS, inject } from 'stratal/di'
+import { HttpException } from 'stratal/errors'
 import { Controller, type IController, Route, type RouterContext, uuidParamSchema } from 'stratal/router'
-import { z } from 'stratal/validation'
+import { object, string } from 'zod/mini'
+import {
+  createTaskSchema,
+  createdTaskSchema,
+  taskCountSchema,
+  taskListSchema,
+  taskLookupSchema,
+  workflowStartedSchema,
+} from './task.schemas'
 import { TaskService } from './task.service'
 
-const taskSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-  userId: z.string(),
-  status: z.enum(['pending', 'processing', 'completed']),
-  createdAt: z.string(),
-})
-
-@Controller('/api/tasks')
+@Controller('/tasks', { tags: ['Tasks'] })
 export class TaskController implements IController {
-  constructor(
-    @inject(TaskService) private readonly taskService: TaskService,
-    @inject(DI_TOKENS.CloudflareEnv) private readonly env: StratalEnv
-  ) { }
+  constructor(@inject(TaskService) private readonly taskService: TaskService) {}
 
   @Route({
-    response: z.object({ tasks: z.array(taskSchema) }),
+    query: object({ userId: string() }),
+    response: taskListSchema,
     summary: 'List tasks for a user',
-    query: z.object({ userId: z.string() }),
   })
-  async index(ctx: RouterContext) {
-    const userId = ctx.query('userId')!
-    const tasks = this.taskService.findByUserId(userId)
-
-    return ctx.json({ tasks })
+  index(ctx: RouterContext) {
+    return ctx.json({ tasks: this.taskService.findByUserId(ctx.query('userId') as string) })
   }
 
   @Route({
-    response: z.object({ task: taskSchema.nullable() }),
-    summary: 'Get a task by ID (via RPC loopback)',
-    params: uuidParamSchema
+    params: uuidParamSchema,
+    response: taskLookupSchema,
+    summary: 'Get a task by ID through the RPC entrypoint',
   })
   async show(ctx: RouterContext) {
-    const id = ctx.param('id')
-
-    // Look up the task via the loopback RPC export
-    const task = await exports.TaskRpc.getTask(id)
-
+    const task = await exports.TaskRpc.getTask(ctx.param('id'))
     return ctx.json({ task: task ?? null })
   }
 
   @Route({
-    response: z.object({ task: taskSchema, counterValue: z.number() }),
+    body: createTaskSchema,
+    response: createdTaskSchema,
     summary: 'Create a task and increment the per-user Durable Object counter',
-    body: z.object({
-      title: z.string(),
-      userId: z.string(),
-    }),
   })
   async create(ctx: RouterContext) {
     const { title, userId } = await ctx.body<{ title: string; userId: string }>()
     const task = this.taskService.create(title, userId)
 
-    // Increment the per-user counter via Durable Object
-    const counterId = exports.TaskCounter.idFromName(userId)
-    const counter = exports.TaskCounter.get(counterId)
+    const counter = exports.TaskCounter.get(exports.TaskCounter.idFromName(userId))
     const counterValue = await counter.increment(userId)
 
-    return ctx.json({ task, counterValue })
+    return ctx.json({ task, counterValue }, 201)
   }
 }
 
-@Controller('/api/tasks/:id/process')
+@Controller('/tasks/:id/process', { tags: ['Tasks'] })
 export class TaskProcessController implements IController {
   constructor(
     @inject(TaskService) private readonly taskService: TaskService,
-    @inject(DI_TOKENS.CloudflareEnv) private readonly env: StratalEnv
-  ) { }
+    @inject(DI_TOKENS.CloudflareEnv) private readonly env: StratalEnv,
+  ) {}
 
   @Route({
-    response: z.object({ instanceId: z.string() }),
+    params: uuidParamSchema,
+    response: workflowStartedSchema,
     summary: 'Start the task processing workflow',
-    params: uuidParamSchema
   })
   async create(ctx: RouterContext) {
     const id = ctx.param('id')
+    if (!this.taskService.findById(id)) throw new HttpException(404, `Task ${id} not found`)
 
-    const task = this.taskService.findById(id)
-    if (!task) {
-      return ctx.json({ error: 'Task not found' }, 404)
-    }
-
-    // Start the workflow
     const instance = await this.env.TASK_WORKFLOW.create({ params: { taskId: id } })
-
-    return ctx.json({ instanceId: instance.id })
+    return ctx.json({ instanceId: instance.id }, 201)
   }
 }
 
-@Controller('/api/tasks/user/:userId/count')
+@Controller('/tasks/user/:userId/count', { tags: ['Tasks'] })
 export class TaskCountController implements IController {
-  constructor(
-    @inject(DI_TOKENS.CloudflareEnv) private readonly env: StratalEnv
-  ) { }
+  constructor(@inject(DI_TOKENS.CloudflareEnv) private readonly env: StratalEnv) {}
 
   @Route({
-    response: z.object({ count: z.number() }),
-    summary: 'Get the per-user task count from Durable Object storage',
-    params: z.object({
-      userId: z.string().describe('User ID')
-    }).openapi('userId')
+    params: object({ userId: string() }),
+    response: taskCountSchema,
+    summary: 'Read the per-user count from Durable Object storage',
   })
   async index(ctx: RouterContext) {
     const userId = ctx.param('userId')
-    const counterId = this.env.TASK_COUNTER.idFromName(userId)
-    const counter = this.env.TASK_COUNTER.get(counterId)
-    const count = await counter.getCount()
+    const counter = this.env.TASK_COUNTER.get(this.env.TASK_COUNTER.idFromName(userId))
 
-    return ctx.json({ count })
+    return ctx.json({ count: await counter.getCount() })
   }
 }

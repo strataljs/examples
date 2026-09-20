@@ -1,7 +1,8 @@
+import { inject, Transient } from 'stratal/di'
 import { Command } from 'stratal/quarry'
-import { inject } from 'tsyringe'
 import { TaskService } from '../services/task.service'
 
+@Transient()
 export class AddTaskCommand extends Command {
   static command = 'task:add {title : The task title} {--p|priority= : Task priority (low, normal, high)}'
   static description = 'Add a new task'

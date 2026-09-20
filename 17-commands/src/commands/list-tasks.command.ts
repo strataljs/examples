@@ -1,7 +1,8 @@
-import { inject } from 'tsyringe'
+import { inject, Transient } from 'stratal/di'
 import { Command } from 'stratal/quarry'
 import { TaskService } from '../services/task.service'
 
+@Transient()
 export class ListTasksCommand extends Command {
   static command = 'task:list {--s|status= : Filter by status (pending, done)}'
   static description = 'List all tasks'

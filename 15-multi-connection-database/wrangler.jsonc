@@ -19,12 +19,12 @@
     {
       "binding": "DB_MAIN",
       "id": "placeholder-main",
-      "localConnectionString": "postgres://stratal:stratal@localhost:6432/stratal_main"
+      "localConnectionString": "postgres://stratal:stratal@localhost:6434/stratal_main"
     },
     {
       "binding": "DB_ANALYTICS",
       "id": "placeholder-analytics",
-      "localConnectionString": "postgres://stratal:stratal@localhost:7432/stratal_analytics"
+      "localConnectionString": "postgres://stratal:stratal@localhost:6435/stratal_analytics"
     }
   ]
 }

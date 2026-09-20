@@ -5,21 +5,31 @@
   "scripts": {
     "dev": "wrangler dev",
     "generate": "zenstack generate --schema db/schema.zmodel -o db/zenstack",
-    "wrangler:types": "wrangler types --strict-vars=false",
-    "db:up": "docker compose up -d",
-    "db:push": "DATABASE_URL='postgres://stratal:stratal@localhost:6432/stratal_rbac_example' npx zenstack db push --schema db/schema.zmodel",
-    "quarry": "quarry",
+    "db:up": "docker compose up -d --wait",
+    "db:down": "docker compose down",
+    "db:push": "DATABASE_URL='postgres://stratal:stratal@localhost:6433/stratal_rbac_example' zenstack db push --schema db/schema.zmodel",
+    "setup": "npm run db:up && npm run generate && npm run db:push",
     "deploy": "wrangler deploy",
+    "wrangler:types": "wrangler types --strict-vars=false",
     "typecheck": "wrangler types --strict-vars=false && tsc --noEmit"
   },
   "dependencies": {
     "@stratal/framework": "^0.1.0",
+    "@zenstackhq/better-auth": "^3.9.4",
+    "@zenstackhq/orm": "^3.9.4",
+    "@zenstackhq/schema": "^3.9.4",
+    "better-auth": "^1.7.5",
     "pg": "^8.23.0",
-    "stratal": "^0.1.0"
+    "stratal": "^0.1.0",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@types/pg": "^8.15.6",
+    "@zenstackhq/cli": "^3.9.4",
     "typescript": "^7.0.2",
     "wrangler": "^4.135.0"
+  },
+  "overrides": {
+    "@paralleldrive/cuid2": "^3.3.0"
   }
 }

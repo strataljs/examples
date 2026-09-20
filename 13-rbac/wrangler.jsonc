@@ -8,7 +8,8 @@
   ],
   "vars": {
     "ENVIRONMENT": "development",
-    "BETTER_AUTH_SECRET": "my-secret-key-change-in-production"
+    "BETTER_AUTH_SECRET": "my-secret-key-change-in-production",
+    "BETTER_AUTH_URL": "http://localhost:8787"
   },
   "kv_namespaces": [
     {
@@ -20,7 +21,7 @@
     {
       "binding": "DB",
       "id": "placeholder",
-      "localConnectionString": "postgres://stratal:stratal@localhost:6432/stratal_rbac_example"
+      "localConnectionString": "postgres://stratal:stratal@localhost:6433/stratal_rbac_example"
     }
   ]
 }

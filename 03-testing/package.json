@@ -4,17 +4,23 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
-    "test": "vitest run"
+    "test": "vitest run",
+    "deploy": "wrangler deploy",
+    "wrangler:types": "wrangler types --strict-vars=false",
+    "typecheck": "wrangler types --strict-vars=false && tsc --noEmit"
   },
   "dependencies": {
-    "reflect-metadata": "^0.2.2",
-    "stratal": "^0.0.16"
+    "stratal": "^0.1.0",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20260317.1",
-    "@stratal/testing": "^0.0.16",
-    "typescript": "^5.9.3",
-    "vitest": "~4.1.0",
-    "wrangler": "^4.76.0"
+    "@stratal/framework": "^0.1.0",
+    "@stratal/testing": "^0.1.0",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.0",
+    "wrangler": "^4.135.0"
+  },
+  "overrides": {
+    "@paralleldrive/cuid2": "^3.3.0"
   }
 }

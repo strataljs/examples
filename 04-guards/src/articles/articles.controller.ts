@@ -1,17 +1,20 @@
-import { Controller, IController, Route, RouterContext, UseGuards } from 'stratal/router'
-import { z } from 'stratal/validation'
+import { UseGuards } from 'stratal/guards'
+import { Controller, type IController, Route, type RouterContext } from 'stratal/router'
+import { named } from 'stratal/validation'
+import { array, object, string } from 'zod/mini'
 import { ApiKeyGuard } from '../auth/api-key.guard'
 
-@Controller('/api/articles')
+const articleSummary = named(object({ id: string(), title: string() }), 'ArticleSummary')
+const article = named(
+  object({ id: string(), title: string(), content: string() }),
+  'Article',
+)
+
+@Controller('/articles', { tags: ['Articles'], security: ['apiKey'] })
 @UseGuards(ApiKeyGuard)
 export class ArticlesController implements IController {
   @Route({
-    response: z.object({
-      data: z.array(z.object({
-        id: z.string(),
-        title: z.string(),
-      })),
-    }),
+    response: object({ data: array(articleSummary) }),
     summary: 'List articles (protected)',
   })
   index(ctx: RouterContext) {
@@ -24,14 +27,8 @@ export class ArticlesController implements IController {
   }
 
   @Route({
-    params: z.object({ id: z.string() }),
-    response: z.object({
-      data: z.object({
-        id: z.string(),
-        title: z.string(),
-        content: z.string(),
-      }),
-    }),
+    params: object({ id: string() }),
+    response: object({ data: article }),
     summary: 'Get article by ID (protected)',
   })
   show(ctx: RouterContext) {

@@ -4,19 +4,19 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
-    "wrangler:types": "wrangler types"
+    "wrangler:types": "wrangler types --strict-vars=false",
+    "deploy": "wrangler deploy",
+    "typecheck": "wrangler types --strict-vars=false && tsc --noEmit"
   },
   "dependencies": {
-    "@better-auth/kysely-adapter": "^1.5.6",
-    "@stratal/framework": "^0.0.15",
-    "kysely": "^0.28.14",
+    "@better-auth/kysely-adapter": "^1.7.5",
+    "@stratal/framework": "^0.1.0",
+    "kysely": "^0.29.6",
     "kysely-d1": "^0.4.0",
-    "reflect-metadata": "^0.2.2",
-    "stratal": "^0.0.16"
+    "stratal": "^0.1.0"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20260317.1",
-    "typescript": "^5.9.3",
-    "wrangler": "^4.77.0"
+    "typescript": "^7.0.2",
+    "wrangler": "^4.135.0"
   }
 }

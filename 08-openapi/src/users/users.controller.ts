@@ -1,37 +1,41 @@
-import { Controller, IController, Route, RouterContext } from 'stratal/router'
-import { z } from 'stratal/validation'
+import { Controller, type IController, Route, type RouterContext } from 'stratal/router'
+import { object, string } from 'zod/mini'
+import { UserNotFoundError } from './user-not-found.error'
 import {
+  type CreateUserInput,
+  type UpdateUserInput,
+  type User,
   createUserSchema,
+  deleteUserSchema,
   updateUserSchema,
   userListSchema,
   userResponseSchema,
-  type User,
 } from './users.schemas'
 
 const users = new Map<string, User>()
+const userParams = object({ id: string() })
 
-@Controller('/api/users', { tags: ['Users'] })
+@Controller('/users', { tags: ['Users'] })
 export class UsersController implements IController {
   @Route({
     response: userListSchema,
     summary: 'List all users',
-    description: 'Returns a list of all registered users.',
+    description: 'Returns every registered user.',
   })
   index(ctx: RouterContext) {
     return ctx.json({ data: Array.from(users.values()) })
   }
 
   @Route({
-    params: z.object({ id: z.string() }),
+    params: userParams,
     response: userResponseSchema,
     summary: 'Get user by ID',
     description: 'Returns a single user by their unique identifier.',
   })
   show(ctx: RouterContext) {
-    const user = users.get(ctx.param('id'))
-    if (!user) {
-      return ctx.json({ error: 'User not found' }, 404)
-    }
+    const id = ctx.param('id')
+    const user = users.get(id)
+    if (!user) throw new UserNotFoundError(id)
     return ctx.json({ data: user })
   }
 
@@ -39,50 +43,41 @@ export class UsersController implements IController {
     body: createUserSchema,
     response: userResponseSchema,
     summary: 'Create a user',
-    description: 'Creates a new user with the provided name, email, and role.',
+    description: 'Creates a new user. `role` defaults to `member`.',
   })
   async create(ctx: RouterContext) {
-    const body = await ctx.body<{ name: string; email: string; role: string }>()
-    const user: User = {
-      id: crypto.randomUUID(),
-      name: body.name,
-      email: body.email,
-      role: body.role as User['role'],
-      createdAt: new Date().toISOString(),
-    }
+    const body = await ctx.body<CreateUserInput>()
+    const user: User = { id: crypto.randomUUID(), createdAt: new Date().toISOString(), ...body }
     users.set(user.id, user)
     return ctx.json({ data: user }, 201)
   }
 
   @Route({
-    params: z.object({ id: z.string() }),
+    params: userParams,
     body: updateUserSchema,
     response: userResponseSchema,
     summary: 'Update a user',
-    description: 'Updates an existing user. Only provided fields are changed.',
+    description: 'Updates an existing user. Only provided fields change.',
   })
   async update(ctx: RouterContext) {
-    const user = users.get(ctx.param('id'))
-    if (!user) {
-      return ctx.json({ error: 'User not found' }, 404)
-    }
-    const body = await ctx.body<Partial<User>>()
-    const updated = { ...user, ...body }
-    users.set(user.id, updated)
+    const id = ctx.param('id')
+    const user = users.get(id)
+    if (!user) throw new UserNotFoundError(id)
+
+    const updated = { ...user, ...(await ctx.body<UpdateUserInput>()) }
+    users.set(id, updated)
     return ctx.json({ data: updated })
   }
 
   @Route({
-    params: z.object({ id: z.string() }),
-    response: z.object({ success: z.boolean() }),
+    params: userParams,
+    response: deleteUserSchema,
     summary: 'Delete a user',
     description: 'Permanently removes a user by their ID.',
   })
   destroy(ctx: RouterContext) {
-    const deleted = users.delete(ctx.param('id'))
-    if (!deleted) {
-      return ctx.json({ error: 'User not found' }, 404)
-    }
+    const id = ctx.param('id')
+    if (!users.delete(id)) throw new UserNotFoundError(id)
     return ctx.json({ success: true })
   }
 }

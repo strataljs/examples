@@ -1,41 +1,40 @@
-import { z } from 'stratal/validation'
+import { _default, array, boolean, email, enum as enum_, maxLength, minLength, object, optional, string } from 'zod/mini'
+import type { infer as Infer } from 'zod/mini'
+import { describe, named } from 'stratal/validation'
 
-export const createUserSchema = z
-  .object({
-    name: z.string().min(1).max(100),
-    email: z.string().email(),
-    role: z.enum(['admin', 'member', 'viewer']).default('member'),
-  })
-  .openapi('CreateUser')
+const role = enum_(['admin', 'member', 'viewer'])
 
-export const updateUserSchema = z
-  .object({
-    name: z.string().min(1).max(100).optional(),
-    email: z.string().email().optional(),
-    role: z.enum(['admin', 'member', 'viewer']).optional(),
-  })
-  .openapi('UpdateUser')
+// `named()` is reserved for schemas referenced from inside other schemas. A
+// named schema used directly as a body or response is emitted as a $ref to
+// itself in stratal 0.1.0, so the wrappers below stay anonymous and inline.
+export const userSchema = named(
+  object({
+    id: string(),
+    name: string(),
+    email: email(),
+    role,
+    createdAt: string(),
+  }),
+  'User',
+  'A registered user',
+)
 
-export const userSchema = z
-  .object({
-    id: z.string(),
-    name: z.string(),
-    email: z.string().email(),
-    role: z.enum(['admin', 'member', 'viewer']),
-    createdAt: z.string(),
-  })
-  .openapi('User')
+export const createUserSchema = object({
+  name: describe(string().check(minLength(1), maxLength(100)), 'Display name'),
+  email: describe(email(), 'Unique email address'),
+  role: _default(role, 'member'),
+})
 
-export const userListSchema = z
-  .object({
-    data: z.array(userSchema),
-  })
-  .openapi('UserList')
+export const updateUserSchema = object({
+  name: optional(string().check(minLength(1), maxLength(100))),
+  email: optional(email()),
+  role: optional(role),
+})
 
-export const userResponseSchema = z
-  .object({
-    data: userSchema,
-  })
-  .openapi('UserResponse')
+export const userListSchema = object({ data: array(userSchema) })
+export const userResponseSchema = object({ data: userSchema })
+export const deleteUserSchema = object({ success: boolean() })
 
-export type User = z.infer<typeof userSchema>
+export type User = Infer<typeof userSchema>
+export type CreateUserInput = Infer<typeof createUserSchema>
+export type UpdateUserInput = Infer<typeof updateUserSchema>

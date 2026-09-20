@@ -4,15 +4,16 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
-    "quarry": "quarry"
+    "quarry": "quarry",
+    "deploy": "wrangler deploy",
+    "wrangler:types": "wrangler types --strict-vars=false",
+    "typecheck": "wrangler types --strict-vars=false && tsc --noEmit"
   },
   "dependencies": {
-    "reflect-metadata": "^0.2.2",
-    "stratal": "^0.0.16"
+    "stratal": "^0.1.0"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20260317.1",
-    "typescript": "^5.9.3",
-    "wrangler": "^4.77.0"
+    "typescript": "^7.0.2",
+    "wrangler": "^4.135.0"
   }
 }

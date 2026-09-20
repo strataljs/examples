@@ -1,27 +1,26 @@
 {
   "compilerOptions": {
-    "target": "esnext",
-    "module": "esnext",
+    "target": "ESNext",
+    "module": "ESNext",
     "moduleResolution": "bundler",
-    "strict": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "jsx": "react-jsx",
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "types": [
-      "@cloudflare/workers-types/2023-07-01"
+    "lib": [
+      "ESNext"
     ],
+    "types": [],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "experimentalDecorators": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
     "paths": {
       "@/*": [
         "./src/inertia/*"
       ]
-    }
+    },
+    "baseUrl": "."
   },
   "include": [
     "src/**/*",

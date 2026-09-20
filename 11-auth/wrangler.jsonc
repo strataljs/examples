@@ -1,7 +1,8 @@
 {
+  "$schema": "node_modules/wrangler/config-schema.json",
   "name": "stratal-example-11-auth",
   "main": "src/index.ts",
-  "compatibility_date": "2026-02-25",
+  "compatibility_date": "2026-09-20",
   "compatibility_flags": ["nodejs_compat"],
   "vars": {
     "ENVIRONMENT": "development",

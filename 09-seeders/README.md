@@ -1,52 +1,83 @@
-# 09 - Seeders
+# 09 · Seeders
 
-Database seeding with `stratal/seeder` and the Quarry CLI framework.
+Populating an app with starting data from the Quarry CLI.
 
 ## What it demonstrates
 
-- `Seeder` abstract class for defining seed data
-- `QuarryRunner.run()` to bootstrap the CLI
-- Built-in commands: `db:seed`, `db:seed:list`
-- Dependency injection inside seeders (injecting services)
-- Seeders as module providers (auto-discovered)
+- A `Seeder` subclass with injected services
+- Registering seeders as `providers` on the Quarry entry point, so they stay out of the worker bundle
+- `quarry db:seed` and `quarry db:seed:list`
+- Sharing state between the CLI and `wrangler dev` through a KV binding
 
-## Running
+> Seeders run in the Quarry process, not in your worker. They only produce data your app can read if they write somewhere shared — here, the `CACHE` KV namespace, which Quarry and `wrangler dev` both reach through the same local Miniflare state. A seeder writing to an in-memory map would appear to succeed and change nothing.
+
+## Run it
 
 ```bash
-cd 09-seeders
 npm install
 ```
 
-### Start the worker
+List the seeders:
 
 ```bash
-npx wrangler dev
+npx quarry db:seed:list
 ```
 
-### CLI commands
+```
+Class
+-----------
+NotesSeeder
+```
 
-| Command | Description |
-|---------|-------------|
-| `npm run quarry db:seed:list` | List all available seeders |
-| `npm run quarry db:seed NotesSeeder` | Run the `NotesSeeder` seeder |
-| `npm run quarry db:seed -- --all` | Run all seeders |
-| `npm run quarry db:seed NotesSeeder -- --dry-run` | Preview without executing |
-
-### Example requests
+Run one:
 
 ```bash
-# List all notes (includes seeded data after running seeders)
-curl http://localhost:8787/api/notes
+npx quarry db:seed NotesSeeder
+```
 
-# Create a note
-curl -X POST http://localhost:8787/api/notes \
+```
+✔ Seeder "NotesSeeder" completed
+```
+
+Run every seeder with `npx quarry db:seed --all`.
+
+## Try it
+
+```bash
+npm run dev
+curl http://localhost:8787/api/v1/notes
+```
+
+The three seeded notes come back:
+
+```
+- Getting Started | Seeders populate your app with initial data
+- Stratal         | A modular Cloudflare Workers framework
+- Welcome         | This note was created by a seeder
+```
+
+Adding more through the API works the same way:
+
+```bash
+curl -X POST http://localhost:8787/api/v1/notes \
   -H 'Content-Type: application/json' \
-  -d '{"title": "My Note", "content": "Hello from Stratal"}'
+  -d '{"title":"Mine","content":"Added over HTTP"}'
 ```
+
+Delete `.wrangler/` to reset the local KV state.
 
 ## Key files
 
-- [`src/seeders/notes.seeder.ts`](src/seeders/notes.seeder.ts) - Seeder that creates sample notes
-- [`src/app.module.ts`](src/app.module.ts) - Root module with seeder in providers
-- [`src/notes/notes.service.ts`](src/notes/notes.service.ts) - In-memory notes service
-- [`src/notes/notes.controller.ts`](src/notes/notes.controller.ts) - Notes REST controller
+- [`src/seeders/notes.seeder.ts`](src/seeders/notes.seeder.ts) — the seeder
+- [`src/quarry.ts`](src/quarry.ts) — CLI entry registering it
+- [`src/notes/notes.service.ts`](src/notes/notes.service.ts) — KV-backed storage shared by both
+
+## Learn more
+
+- [Stratal documentation](https://stratal.dev)
+- [Stratal on GitHub](https://github.com/strataljs/stratal)
+- [All examples](https://github.com/strataljs/examples)
+
+## Star Stratal
+
+If this example helped, please [star the Stratal repo](https://github.com/strataljs/stratal) — it is the simplest way to support the project and helps other developers find it.

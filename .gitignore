@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+.yarn/cache/
+
+# Build output
+dist/
+build/
+.output/
+*.tsbuildinfo
+
+# Wrangler / Cloudflare
+.wrangler/
+worker-configuration.d.ts
+
+# Secrets
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+.env
+.env.*
+!.env.example
+
+# Vite
+.vite/
+vite.config.ts.timestamp-*
+
+# Test output
+coverage/
+.nyc_output/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode-test/

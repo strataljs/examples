@@ -1,13 +1,11 @@
-import { CronJob } from 'stratal/cron';
-import { Transient } from 'stratal/di';
+import type { CronJob, ScheduledController } from 'stratal/cron'
+import { Transient } from 'stratal/di'
 
 @Transient()
 export class HeartbeatJob implements CronJob {
-  readonly schedule = '*/5 * * * *'
+  static schedule = '*/5 * * * *'
 
-  async execute() {
-    console.log(`[HeartbeatJob] Heartbeat at ${new Date().toISOString()}`)
-
-    return Promise.resolve();
+  async execute(_controller: ScheduledController): Promise<void> {
+    console.log(`[HeartbeatJob] heartbeat at ${new Date().toISOString()}`)
   }
 }

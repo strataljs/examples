@@ -1,22 +1,14 @@
 import { Controller, type IController, Route, type RouterContext } from 'stratal/router'
-import { z } from 'stratal/validation'
-
+import { number, object } from 'zod/mini'
 import { StatsListener } from './stats.listener'
 
-const statsSchema = z.object({
-  data: z.object({
-    notify: z.number(),
-    index: z.number(),
-    webhook: z.number(),
-  }),
+const statsSchema = object({
+  data: object({ notify: number(), index: number(), webhook: number() }),
 })
 
-@Controller('/api/stats')
+@Controller('/stats', { tags: ['Stats'] })
 export class StatsController implements IController {
-  @Route({
-    response: statsSchema,
-    summary: 'Get event stats',
-  })
+  @Route({ response: statsSchema, summary: 'Get event stats' })
   index(ctx: RouterContext) {
     return ctx.json({ data: StatsListener.counts })
   }

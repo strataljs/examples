@@ -1,19 +1,22 @@
 {
   "compilerOptions": {
-    "target": "esnext",
-    "module": "esnext",
+    "target": "ESNext",
+    "module": "ESNext",
     "moduleResolution": "bundler",
+    "lib": [
+      "ESNext"
+    ],
+    "types": [],
     "strict": true,
-    "skipLibCheck": true,
     "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
+    "skipLibCheck": true,
     "isolatedModules": true,
+    "resolveJsonModule": true,
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "types": ["@cloudflare/workers-types/2023-07-01"]
+    "noEmit": true
   },
-  "include": ["src/**/*"]
+  "include": [
+    "src",
+    "worker-configuration.d.ts"
+  ]
 }
